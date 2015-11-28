@@ -1,2 +1,6 @@
-# api
-documentation for jobEQ API and other related tools
+#jobEQ API documentation
+
+* [Interactive API documentation](http://jobeq.info/api/)
+* [API authorization procedure](../blob/master/authorization.md)
+
+
