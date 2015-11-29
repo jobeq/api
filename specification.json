@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "title": "jobEQ API",
-        "description": "jobEQ API documentation based on Swagger specification. To start using jobEQ API application should be registered by jobEQ and receive secret key, please email us to register your application. Application should perform authentication based on oAuth2 protocol. You can find detailed description of authentication procedure in <a href=\"\">this document</a>.",
+        "description": "jobEQ API documentation based on Swagger specification. To start using jobEQ API application should be registered by jobEQ and receive secret key, please email us to register your application. Application should perform authentication based on oAuth2 protocol. You can find detailed description of authentication procedure in <a href=\"https://github.com/jobeq/api/blob/master/authorization.md\">this document</a>.",
         "termsOfService": "public",
         "contact": {
             "name": "jobEQ",
