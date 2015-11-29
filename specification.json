@@ -1,0 +1,1167 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "jobEQ API",
+        "description": "jobEQ API documentation based on Swagger specification. To start using jobEQ API application should be registered by jobEQ and receive secret key, please email us to register your application. Application should perform authentication based on oAuth2 protocol. You can find detailed description of authentication procedure in <a href=\"\">this document</a>.",
+        "termsOfService": "public",
+        "contact": {
+            "name": "jobEQ",
+            "url": "http://jobeq.info/api/",
+            "email": "helpdesk@jobeq.net"
+        },
+        "version": "2.0.0"
+    },
+    "host": "jobeq.net",
+    "schemes": [
+        "https",
+        "http"
+    ],
+    "basePath": "/api",
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "tags": [
+        {
+            "name": "iwam",
+            "description": "set of functions related to iWAM questionnaire"
+        },
+        {
+            "name": "people",
+            "description": "set of functions related to personal data"
+        },
+        {
+            "name": "reports",
+            "description": "retrieve reports for people"
+        },
+        {
+            "name": "texts",
+            "description": "get translated texts"
+        },
+        {
+            "name": "model",
+            "description": "functions related to modeling"
+        }
+    ],
+    "paths": {
+        "/people/{cugID}": {
+            "post": {
+                "summary": "register new person in the CUG",
+                "description": "register new person in jobEQ database, client must provide a CUG where to put the person record, profile will be added to default CUG inbox storageroom",
+                "operationId": "person_register",
+                "parameters": [
+                    {
+                        "name": "cugID",
+                        "in": "path",
+                        "description": "ID of CUG to regester person at. Current API client should have enough access permissions to register people in requested CUG",
+                        "required": true,
+                        "type": "string",
+                        "maxLength": 6,
+                        "minLength": 6
+                    },
+                    {
+                        "name": "person",
+                        "in": "body",
+                        "description": "personal info",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Person"
+                        }
+                    }
+                ],
+                "tags": [
+                    "people"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "new person record was created and added to the CUG",
+                        "headers": {
+                            "Location": {
+                                "description": "URI to retrieve person record with API",
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unable to perform operation due to invalid permission",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Person registration in provided CUG is not allowed",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Unknown cugID",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/{personID}/pin": {
+            "get": {
+                "summary": "get person PIN code hash",
+                "description": "retrieve person pin code sha1 hash, this might be useful when doing person authentication. Note that HR user needs specific permissions to retrieve PIN",
+                "operationId": "get_person_pin",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    }
+                ],
+                "tags": [
+                    "people"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "hash code of person PIN",
+                        "schema": {
+                            "$ref": "#/definitions/PersonPIN"
+                        }
+                    },
+                    "403": {
+                        "description": "HR user doesn't have access to requested person, or not enough permisions to get pin",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "person ID doesn't exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "409": {
+                        "description": "iWAM is not available for provided person",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "500": {
+                        "description": "server error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/{personID}/surveys/iwam/scores": {
+            "put": {
+                "summary": "submit iWAM data for person",
+                "description": "submit iWAM answers for person",
+                "operationId": "post_person_iwam",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    },
+                    {
+                        "name": "answers",
+                        "in": "body",
+                        "description": "iWAM answers",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "minItems": 40,
+                            "maxItems": 40,
+                            "items": {
+                                "$ref": "#/definitions/IwamAnswer"
+                            }
+                        }
+                    },
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "description": "language used for iWAM (ISO 639-1 code)",
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2,
+                        "required": true
+                    },
+                    {
+                        "name": "startTime",
+                        "in": "query",
+                        "description": "when iWAM was started, full date with seconds when person started iWAM quiestionnaire",
+                        "type": "string",
+                        "format": "date-time",
+                        "required": true
+                    },
+                    {
+                        "name": "endTime",
+                        "in": "query",
+                        "description": "when iWAM was started, full date with seconds when person finished iWAM quiestionnaire",
+                        "type": "string",
+                        "format": "date-time",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "people",
+                    "iwam"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "iWAM data for person was added"
+                    },
+                    "403": {
+                        "description": "HR user doesn't have access to requested person, or not enough permisions to get pin",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "person ID doesn't exist, or iWAM is not allowed for person",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "500": {
+                        "description": "server error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "get": {
+                "summary": "get iWAM scores for person",
+                "description": "retrieve iWAM scores for person. If person didn't complete iWAM, error will be returned. If person completed iWAM more then once, the latest test data would be returned",
+                "operationId": "get_person_iwam_scores",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    },
+                    {
+                        "$ref": "#/parameters/stdgrpParam"
+                    }
+                ],
+                "tags": [
+                    "people",
+                    "iwam"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "array of iWAM pattern scores",
+                        "schema": {
+                            "type": "array",
+                            "minItems": 40,
+                            "maxItems": 40,
+                            "items": {
+                                "$ref": "#/definitions/iWAMPatternsScore"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "HR user doesn't have access to requested person, or not enough permisions to get pin",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "incorrect person ID",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "409": {
+                        "description": "iWAM is not available for provided person",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/{personID}/surveys/iwam/status": {
+            "get": {
+                "summary": "get person iWAM status",
+                "description": "retrieve current person iWAM status",
+                "operationId": "get_person_iwam_status",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    }
+                ],
+                "tags": [
+                    "people",
+                    "iwam"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "current iWAM status of the person",
+                        "schema": {
+                            "$ref": "#/definitions/PersonIwamStatus"
+                        }
+                    },
+                    "403": {
+                        "description": "HR user doesn't have access to requested person, or not enough permisions to get pin",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "person ID doesn't exist, or iWAM is not allowed for person",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "500": {
+                        "description": "server error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/{personID}/storage": {
+            "get": {
+                "summary": "get person storage info",
+                "description": "retrieve information about CUGs and storagerooms where person is registered. This will return only those CUGs and storagerooms which are accessible to current HR user.",
+                "operationId": "get_person_storage",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    }
+                ],
+                "tags": [
+                    "people"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "returns data about CUGs and storagerooms where person ID is stored. The result is array of StorageInfo objects. If one of the array members is an object with empty storagerooms array, it means that person is registered in the CUG, but removed from all storagerooms.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/StorageInfo"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "HR user doesn't have access to requested person, or not enough permisions to get pin",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "person ID doesn't exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "500": {
+                        "description": "server error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/texts/surveys/iwam/{language}": {
+            "get": {
+                "summary": "get texts for iWAM survey",
+                "description": "retrieve texts (questions and endings) for iWAM survey for provided language. See available translations in language parameter specification.",
+                "operationId": "get_texts_surveys_iwam_translations",
+                "parameters": [
+                    {
+                        "name": "language",
+                        "in": "path",
+                        "description": "language of translation ((ISO 639-1), available translations are defined in acceptable values",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "ar",
+                            "en",
+                            "id",
+                            "it",
+                            "jp",
+                            "ms",
+                            "ro",
+                            "cn",
+                            "cs",
+                            "de",
+                            "dk",
+                            "fr",
+                            "kr",
+                            "nl",
+                            "pl",
+                            "pt",
+                            "ru",
+                            "sp",
+                            "sw",
+                            "tr"
+                        ]
+                    }
+                ],
+                "tags": [
+                    "texts"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "iWAM translation record",
+                        "schema": {
+                            "type": "array",
+                            "minItems": 40,
+                            "maxItems": 40,
+                            "items": {
+                                "$ref": "#/definitions/IwamQuestionTranslation"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No translation exists for requested language",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/people/{personID}/surveys/iwam/{modelID}/scores": {
+            "get": {
+                "summary": "get person score for iWAM model",
+                "description": "retrieve personal score for iWAM model. To perform this operation current HR user should have access to modeling tools and to specific provided model.",
+                "operationId": "get_person_iwam_model_scores",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    },
+                    {
+                        "$ref": "#/parameters/modelIDParam"
+                    },
+                    {
+                        "$ref": "#/parameters/stdgrpParam"
+                    }
+                ],
+                "tags": [
+                    "people",
+                    "iwam",
+                    "model"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "scores for iWAM model",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/iWAMModelScore"
+                        }
+                    },
+                    "403": {
+                        "description": "HR user doesn't have access to requested person or model",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "person ID doesn't exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "500": {
+                        "description": "server error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/surveys/iwam/{personID}/management": {
+            "get": {
+                "summary": "get iWAM management report for person",
+                "description": "retrieve iWAM management report for person in PDF file format. HR user should have permission to use management report. The response is binary PDF file named iwam_management_report.pdf",
+                "operationId": "get_reports_surveys_iwam_management",
+                "tags": [
+                    "reports"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    },
+                    {
+                        "name": "reportSettings",
+                        "in": "body",
+                        "description": "report settings",
+                        "schema": {
+                            "$ref": "#/definitions/ReportSettings"
+                        }
+                    },
+                    {
+                        "name": "pageFormat",
+                        "in": "query",
+                        "description": "PDF page format",
+                        "type": "string",
+                        "enum": [
+                            "letter",
+                            "a4"
+                        ],
+                        "default": "letter"
+                    },
+                    {
+                        "name": "sections",
+                        "in": "query",
+                        "description": "which sections to include in the report (0 means all sections)",
+                        "type": "integer",
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            14,
+                            124,
+                            134,
+                            0
+                        ],
+                        "default": 0
+                    },
+                    {
+                        "name": "s4Type",
+                        "in": "query",
+                        "description": "type of section 4",
+                        "type": "string",
+                        "enum": [
+                            "graph",
+                            "bars"
+                        ],
+                        "default": "bars"
+                    },
+                    {
+                        "name": "s4BarsType",
+                        "in": "query",
+                        "description": "type of Bars in section 4 (only used if s4Type is \"bars\" )",
+                        "type": "string",
+                        "enum": [
+                            "bars",
+                            "lines",
+                            "solid"
+                        ],
+                        "default": "solid"
+                    }
+                ],
+                "produces": [
+                    "application/pdf"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PDF file containing iWAM Management report",
+                        "schema": {
+                            "type": "file"
+                        },
+                        "headers": {
+                            "Content-type": {
+                                "type": "string",
+                                "description": "application/pdf; charset=utf-8"
+                            },
+                            "Content-Disposition": {
+                                "type": "string",
+                                "description": "attachment; filename=iwam_management_report.pdf"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "HR user has no access to personal data, or HR user doesn't have permission to use management report.  See errr message for details",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "incorrect person ID",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/surveys/iwam/{personID}/attitude_sorter": {
+            "get": {
+                "summary": "get personal iWAM attitude sorter report for person",
+                "description": "get iWAM attitude sorter report for person in HTML file format. The response is HTML file named iwam_attitudesorter_report.html with CUG header and footer and report content",
+                "operationId": "get_reports_surveys_iwam_attitudesorter",
+                "tags": [
+                    "reports"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    },
+                    {
+                        "name": "reportSettings",
+                        "in": "body",
+                        "description": "report settings",
+                        "schema": {
+                            "$ref": "#/definitions/ReportSettings"
+                        }
+                    }
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HTML file containing iWAM attitude sorter report",
+                        "schema": {
+                            "type": "file"
+                        },
+                        "headers": {
+                            "Content-type": {
+                                "type": "string",
+                                "description": "text/html; charset=utf-8"
+                            },
+                            "Content-Disposition": {
+                                "type": "string",
+                                "description": "attachment; filename=iwam_attitudesorter_report.html"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "HR user has no access to personal data",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "incorrect person ID",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/surveys/iwam/{personID}/ranking/{modelID}": {
+            "get": {
+                "summary": "get iWAM ranking report for person",
+                "description": "get iWAM ranking report for person in HTML file format. The response is HTML file named iwam_ranking_report.html with CUG header and footer and report content",
+                "operationId": "get_reports_surveys_iwam_ranking",
+                "tags": [
+                    "reports",
+                    "iwam",
+                    "model"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    },
+                    {
+                        "$ref": "#/parameters/modelIDParam"
+                    },
+                    {
+                        "name": "reportSettings",
+                        "in": "body",
+                        "description": "report settings",
+                        "schema": {
+                            "$ref": "#/definitions/ReportSettings"
+                        }
+                    }
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HTML file containing iWAM ranking report",
+                        "schema": {
+                            "type": "file"
+                        },
+                        "headers": {
+                            "Content-type": {
+                                "type": "string",
+                                "description": "text/html; charset=utf-8"
+                            },
+                            "Content-Disposition": {
+                                "type": "string",
+                                "description": "attachment; filename=iwam_ranking_report.html"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "HR user has no access to personal data",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "incorrect person ID",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "parameters": {
+        "personIDParam": {
+            "name": "personID",
+            "in": "path",
+            "description": "jobEQ_ID for person",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+        },
+        "modelIDParam": {
+            "name": "modelID",
+            "in": "path",
+            "description": "id of iWAM model",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+        },
+        "stdgrpParam": {
+            "name": "stdgrp",
+            "in": "query",
+            "description": "standard group ID",
+            "type": "string"
+        }
+    },
+    "definitions": {
+        "PersonPIN": {
+            "title": "pin",
+            "description": "sha1 hash of person pin code",
+            "properties": {
+                "pin_hash": {
+                    "type": "string"
+                }
+            }
+        },
+        "PersonIwamStatus": {
+            "title": "iwam_status",
+            "required": [
+                "iwam_status"
+            ],
+            "properties": {
+                "iwam_status": {
+                    "type": "string",
+                    "description": "current personal iWAM status, possible values are: 'n' - iWAM is not available for person, 't' - iWAM was completed by person and no new iWAM data can be submitted, '<integer>' - iWAM was completed at least once and new iWAM can be submitted (the value of integer shows how many iWAMs are stored for person already) ",
+                    "enum": [
+                        "n",
+                        "t",
+                        0
+                    ]
+                }
+            }
+        },
+        "Person": {
+            "type": "object",
+            "title": "person",
+            "description": "representatin of personal data",
+            "required": [
+                "firstName",
+                "lastName",
+                "gender",
+                "workCountry",
+                "isSamecountry"
+            ],
+            "properties": {
+                "firstName": {
+                    "type": "string",
+                    "description": "first name"
+                },
+                "lastName": {
+                    "type": "string",
+                    "description": "last name"
+                },
+                "gender": {
+                    "type": "string",
+                    "description": "gender",
+                    "enum": [
+                        "f",
+                        "m"
+                    ]
+                },
+                "workCountry": {
+                    "type": "string",
+                    "description": "work country ISO code",
+                    "minLength": 2,
+                    "maxLength": 2
+                },
+                "middle_name": {
+                    "type": "string",
+                    "description": "middle name"
+                },
+                "postal_code": {
+                    "type": "string"
+                },
+                "email": {
+                    "description": "email address",
+                    "type": "string",
+                    "format": "email"
+                },
+                "dateOfBirth": {
+                    "type": "string",
+                    "description": "date of birth",
+                    "format": "date"
+                },
+                "yearsOfSchool": {
+                    "description": "number of years the person has gone to school, starting from the age of 6 (after kindergaarden)",
+                    "type": "integer"
+                },
+                "occupation": {
+                    "description": "occupation code",
+                    "type": "string",
+                    "enum": [
+                        "A",
+                        "W",
+                        "I",
+                        "C",
+                        "V",
+                        "T",
+                        "E",
+                        "O",
+                        "G",
+                        "X",
+                        "H",
+                        "Y",
+                        "M",
+                        "P",
+                        "R",
+                        "F",
+                        "S",
+                        "L",
+                        "D",
+                        "B",
+                        "U",
+                        9
+                    ]
+                },
+                "isSamecountry": {
+                    "description": "whether person always worked in “work country”",
+                    "type": "boolean"
+                },
+                "countryOfOrigin": {
+                    "description": "ISO  code for the country if the person hasn’t always lived in the work country, the country the person identifies with (e.g. because the person was born there)",
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                },
+                "job_title": {
+                    "description": "the title of person job",
+                    "type": "string"
+                },
+                "tel": {
+                    "description": "telephone number",
+                    "type": "string"
+                },
+                "fax": {
+                    "description": "fax number",
+                    "type": "string"
+                },
+                "mobile": {
+                    "description": "mobile number",
+                    "type": "string"
+                },
+                "extraInfo": {
+                    "description": "array of extra data for person, some CUGs might require some extra data to register person in the system",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ExtraPersonInfoModel"
+                    }
+                }
+            }
+        },
+        "ExtraPersonInfoModel": {
+            "title": "extra personal info item",
+            "description": "represents extra data for person",
+            "required": [
+                "id",
+                "value"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "iWAMPatternsScore": {
+            "title": "score for single iWAM pattern",
+            "description": "representation of the score for one pattern",
+            "properties": {
+                "pattern": {
+                    "type": "string",
+                    "enum": [
+                        "OF1P",
+                        "OF1M",
+                        "OF2P",
+                        "OF2M",
+                        "OF3P",
+                        "OF3M",
+                        "OF4P",
+                        "OF4M",
+                        "OF5P",
+                        "OF5M",
+                        "OF6P",
+                        "OF6M",
+                        "OF7P",
+                        "OF7M",
+                        "OF8P",
+                        "OF8M",
+                        "AC1",
+                        "AC2",
+                        "AC3",
+                        "PR1",
+                        "PR2",
+                        "PR3",
+                        "CR1",
+                        "CR2",
+                        "CR3",
+                        "TO1",
+                        "TO2",
+                        "TO3",
+                        "RS1",
+                        "RS2",
+                        "RS3",
+                        "RS4",
+                        "CO1",
+                        "CO2",
+                        "CO3",
+                        "CO4",
+                        "CO5",
+                        "CO6",
+                        "CO7",
+                        "CO8",
+                        "PF1",
+                        "PF2",
+                        "PF3",
+                        "PF4",
+                        "PF5",
+                        "PF6",
+                        "PF7",
+                        "PF8"
+                    ]
+                },
+                "score": {
+                    "type": "integer"
+                }
+            }
+        },
+        "iWAMModelScore": {
+            "title": "scores for iWAM model",
+            "description": "representatin person score for iWAM model",
+            "required": [
+                "modelID",
+                "score"
+            ],
+            "properties": {
+                "modelID": {
+                    "description": "ID of the iWAM model for which score is calculated",
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "score": {
+                    "description": "overall score for iWAM model",
+                    "type": "integer"
+                },
+                "red": {
+                    "description": "how many times person apppeared in the red zone",
+                    "type": "integer"
+                },
+                "green": {
+                    "description": "how many times person apppeared in the green zone",
+                    "type": "integer"
+                },
+                "orange": {
+                    "description": "how many times person apppeared in the orange zone",
+                    "type": "integer"
+                },
+                "grey": {
+                    "description": "how many times person apppeared in the grey zone",
+                    "type": "integer"
+                }
+            }
+        },
+        "IwamQuestionTranslation": {
+            "title": "single iWAM question translation",
+            "description": "strings of iWAM question and endings for specified language",
+            "required": [
+                "language",
+                "question",
+                "endings"
+            ],
+            "properties": {
+                "language": {
+                    "type": "string",
+                    "description": "current language"
+                },
+                "question": {
+                    "description": "question language text",
+                    "type": "string"
+                },
+                "endings": {
+                    "description": "array of endings for the question. Order is the same as it appears in iWAM survey on jobEQ web site",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "IwamAnswer": {
+            "title": "iWAM answer",
+            "description": "the string of 5 digins representing answer on iWAM question (example 43125)",
+            "properties": {
+                "number": {
+                    "description": "number of question",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 40
+                },
+                "order": {
+                    "description": "integer with 5 digits representing iWAM endings order, each digit corresponds to initial ending position. Example 53124 measns that initial ending 5 was placed on 1st position, ending 3 was placed onm 2nd position etc.",
+                    "type": "integer"
+                }
+            }
+        },
+        "StorageInfo": {
+            "title": "storage object",
+            "description": "storage information",
+            "required": [
+                "cugID"
+            ],
+            "properties": {
+                "cugID": {
+                    "type": "string"
+                },
+                "storageroomID": {
+                    "type": "array",
+                    "description": "array of storagerooms linked to the CUG. Note that array might be empty.",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "ReportSettings": {
+            "title": "report settings",
+            "description": "a set of settings with common parameters for various jobEQ reports",
+            "properties": {
+                "cugID": {
+                    "description": "the ID of CUG to be used for charging and branding, if not provided and report is generated for person, then the first commercial CUG with person registration will be used",
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 6
+                },
+                "standardGroupID": {
+                    "description": "the ID of standard group used to retrieve relative scores, if not provided standard group will be picked according to person work country",
+                    "type": "string"
+                },
+                "reportLanguage": {
+                    "description": "report language",
+                    "type": "string",
+                    "default": "en"
+                }
+            }
+        },
+        "Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "jobeq_api_auth": {
+            "type": "oauth2",
+            "description": "Valid acceess token should be provided with every API request",
+            "authorizationUrl": "http://jobeq.net/oauth/dialog",
+            "flow": "implicit"
+        }
+    },
+    "security": [
+        {
+            "jobeq_api_auth": []
+        }
+    ]
+}
