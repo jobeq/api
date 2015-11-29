@@ -1,6 +1,6 @@
 #jobEQ API documentation
 
 * [Interactive API documentation](http://jobeq.info/api/)
-* [API authorization procedure](authentication.md)
+* [API authorization procedure](authorization.md)
 
 
