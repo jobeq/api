@@ -32,24 +32,24 @@ Authorization is required to use [jobEQ API](http://www.jobeq.info/api/). Applic
 
 ### Error codes and messages
 
-When sending API request authorization service might return a few different error messages. If authorization fails and PAI request can't be processed, server will return "401 Unauthorized" http response code. The error message is sent in "WWW-Authenticate" response header.
+When sending API request authorization service might return a few different error messages. If authorization fails and API request can't be processed, server will return **"401 Unauthorized"** http response code. The error message is sent in **"WWW-Authenticate"** response header.
 
 - Provided access token is incorrect
 
        ```
-       WWW-Authenticate: bearer realm="Service", error="invalid_token", error_description="The access token provided is invalid"
+       WWW-Authenticate: bearer realm="API", error="invalid_token", error_description="The access token provided is invalid"
        ```
 
 - Authorization header is invalid
 
        ```
-       WWW-Authenticate: bearer realm="Service", error="invalid_request", error_description="Malformed auth header"
+       WWW-Authenticate: bearer realm="API", error="invalid_request", error_description="Malformed auth header"
        ```
        
 - Provided access token has expired
 
        ```
-       WWW-Authenticate: bearer realm="Service", error="invalid_token", error_description="The access token provided has expired"
+       WWW-Authenticate: bearer realm="API", error="invalid_token", error_description="The access token provided has expired"
        ```
 ### Working example
 
