@@ -5,7 +5,7 @@ Authorization is required to use [jobEQ API](http://www.jobeq.info/api/). Applic
 ### How to start using jobEQ API ?
 
 1. Register your application and receive __app secret__ and __application ID__, by sending email to jobEQ.
-2. Authorize application access through __jobEQ authorization service__. 
+2. Authenticate your application through __jobEQ authorization service__ and obtain access token.
 3. Call API functions through http adding __access token__ to each request.
 
 ### Quick start guide
@@ -32,7 +32,7 @@ Authorization is required to use [jobEQ API](http://www.jobeq.info/api/). Applic
 
 ### Error codes and messages
 
-When sending API request authorization service might return a few different error messages. If authorization fails and API request can't be processed, server will return **"401 Unauthorized"** http response code. The error message is sent in **"WWW-Authenticate"** response header.
+When sending API request, authorization service might return a few different error messages. If authorization fails and API request can't be processed, server will return **"401 Unauthorized"** http response code. The error message is sent in **"WWW-Authenticate"** response header.
 
 - Provided access token is incorrect
 
