@@ -27,7 +27,7 @@ Authorization is required to use [jobEQ API](http://www.jobeq.info/api/). Applic
        curl -H -v "Authorization: Bearer 4ea347ac369edbe59a0753a5910897f1ea96a798" http://jobeq.info/api_test/texts/surveys/iwam/EN
        ```
        
-4. jobEQ will process resource request and reply according to [API specification](../blob/master/specification.json)
+4. jobEQ will process resource request and reply according to [API specification](../master/specification.json)
 
 
 ### Error codes and messages
