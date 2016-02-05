@@ -132,37 +132,42 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "hash code of person PIN",
+                        "description": "Hash code of person PIN",
                         "schema": {
                             "$ref": "#/definitions/PersonPIN"
                         }
                     },
+
+                    "401": {
+                        "description": "Unauthorized: access token is incorrect, API user is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+
                     "403": {
-                        "description": "HR user doesn't have access to requested person, or not enough permisions to get pin",
+                        "description": "Forbidden: API user doesn't have access to personal data or not enough permissions to process request",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
+
                     "404": {
-                        "description": "person ID doesn't exist",
+                        "description": "Not Found: personID is invalid or person doesn't exist",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
-                    "409": {
-                        "description": "iWAM is not available for provided person",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
+
                     "500": {
-                        "description": "server error",
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
+
                     "default": {
-                        "description": "unexpected error",
+                        "description": "Unexpected error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -228,7 +233,7 @@
                         "description": "iWAM data for person was added"
                     },
                     "403": {
-                        "description": "HR user doesn't have access to requested person, or not enough permisions to get pin",
+                        "description": "API user doesn't have access to requested person, or not enough permisions to process request",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -282,7 +287,7 @@
                         }
                     },
                     "403": {
-                        "description": "HR user doesn't have access to requested person, or not enough permisions to get pin",
+                        "description": "API user doesn't have access to requested person, or not enough permisions to process request",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -329,14 +334,15 @@
                             "$ref": "#/definitions/PersonIwamStatus"
                         }
                     },
-                    "403": {
-                        "description": "HR user doesn't have access to requested person, or not enough permisions to get pin",
+                    "401": {
+                        "description": "Unauthorized: access token is incorrect, API user is invalid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
-                    "404": {
-                        "description": "person ID doesn't exist, or iWAM is not allowed for person",
+
+                    "403": {
+                        "description": "Forbidden: API user doesn't have access to personal data or not enough permissions to process request",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -379,18 +385,27 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized: access token is incorrect, API user is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+
                     "403": {
-                        "description": "HR user doesn't have access to requested person, or not enough permisions to get pin",
+                        "description": "Forbidden: API user doesn't have access to personal data or not enough permissions to process request",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
+
                     "404": {
-                        "description": "person ID doesn't exist",
+                        "description": "Not Found: personID is invalid or person doesn't exist",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
+
                     "500": {
                         "description": "server error",
                         "schema": {
@@ -416,30 +431,11 @@
                         "name": "language",
                         "in": "path",
                         "description": "language of translation ((ISO 639-1), available translations are defined in acceptable values",
-                        "required": true,
                         "type": "string",
-                        "enum": [
-                            "ar",
-                            "en",
-                            "id",
-                            "it",
-                            "jp",
-                            "ms",
-                            "ro",
-                            "cn",
-                            "cs",
-                            "de",
-                            "dk",
-                            "fr",
-                            "kr",
-                            "nl",
-                            "pl",
-                            "pt",
-                            "ru",
-                            "sp",
-                            "sw",
-                            "tr"
-                        ]
+                        "minLength": 2,
+                        "maxLength": 2,
+                        "required": true
+
                     }
                 ],
                 "tags": [
@@ -457,8 +453,14 @@
                             }
                         }
                     },
+                    "400": {
+                        "description": "Bad Request: invalid language parameter",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
                     "404": {
-                        "description": "No translation exists for requested language",
+                        "description": "Not Found: no translation exists for requested language",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
