@@ -499,18 +499,31 @@
                     "200": {
                         "description": "scores for iWAM model",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/iWAMModelScore"
                         }
                     },
-                    "403": {
-                        "description": "HR user doesn't have access to requested person or model",
+                    "400": {
+                        "description": "Person didn't complete iWAM, or invalid standard group parameter",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized: access token is incorrect, API user is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+
+                    "403": {
+                        "description": "Forbidden: API user doesn't have access to personal data, or not enough permissions to process request, or API user does not have access to model, or API user doesn't have access to requested standard group",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+
                     "404": {
-                        "description": "person ID doesn't exist",
+                        "description": "Not Found: personID is invalid or person doesn't exist, or modelID is invalid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -646,7 +659,7 @@
         "/reports/surveys/iwam/{personID}/attitude_sorter": {
             "get": {
                 "summary": "get personal iWAM attitude sorter report for person",
-                "description": "get iWAM attitude sorter report for person in HTML file format. The response is HTML file named iwam_attitudesorter_report.html with CUG header and footer and report content",
+                "description": "get iWAM attitude sorter report for person in JSON file format.",
                 "operationId": "get_reports_surveys_iwam_attitudesorter",
                 "tags": [
                     "reports"
@@ -664,34 +677,29 @@
                         }
                     }
                 ],
-                "produces": [
-                    "text/html"
-                ],
                 "responses": {
                     "200": {
-                        "description": "HTML file containing iWAM attitude sorter report",
+                        "description": "representation of report content",
                         "schema": {
-                            "type": "file"
-                        },
-                        "headers": {
-                            "Content-type": {
-                                "type": "string",
-                                "description": "text/html; charset=utf-8"
-                            },
-                            "Content-Disposition": {
-                                "type": "string",
-                                "description": "attachment; filename=iwam_attitudesorter_report.html"
-                            }
+                            "$ref": "#/definitions/iWAMAttitudeSorterReport"
                         }
                     },
-                    "403": {
-                        "description": "HR user has no access to personal data",
+                    "401": {
+                        "description": "Unauthorized: access token is incorrect, API user is invalid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
+
+                    "403": {
+                        "description": "Forbidden: API user doesn't have access to personal data or not enough permissions to process request",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+
                     "404": {
-                        "description": "incorrect person ID",
+                        "description": "Not Found: personID is invalid or person doesn't exist",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -1052,6 +1060,116 @@
                 "grey": {
                     "description": "how many times person apppeared in the grey zone",
                     "type": "integer"
+                }
+            }
+        },
+        "iWAMAttitudeSorterReportPatternData": {
+            "title": "iWAM Attitude sorter report pattern data",
+            "description": "representation one pattern information used in iWAM attitude sorter report",
+            "required": [
+                "label",
+                "text"
+            ],
+            "properties": {
+                "label": {
+                    "description": "current patern label",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "description fro current pattern",
+                    "type": "string"
+                }
+            }
+        },
+        "iWAMAttitudeSorterReport": {
+            "title": "iWAM attitude sorter report",
+            "description": "representation of iWAM Attitude sorter report",
+            "required": [
+                "settings",
+                "person",
+                "standardGroup",
+                "content"
+            ],
+            "properties": {
+                "settings": {
+                    "description": "current report settings",
+                    "type": "object",
+                    "allOf": [{
+                        "$ref": "#/definitions/ReportSettings"
+                    }]
+                },
+                "person": {
+                    "description": "personal info",
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "description" : "Full name of person",
+                            "type": "string"
+                        },
+                        "testDate": {
+                            "description": "Date when iWAM test was completed",
+                            "type": "string",
+                            "format": "dateTime"
+                        },
+                        "validity": {
+                            "description": "Number of questions where endings order was not changed",
+                            "type": "integer",
+                            "format": "int32",
+                            "minimum": 0,
+                            "maximum": 40
+                        }
+                    }
+                },
+                "standardGroup": {
+                    "description": "standard group info",
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "description": "Standard group ID",
+                            "type": "string"
+                        },
+                        "title": {
+                            "type": "string",
+                            "description": "Standard group title"
+                        }
+                    }
+                },
+                "content": {
+                    "description": "report content",
+                    "type": "object",
+                    "properties": {
+                        "strengths": {
+                            "description": "Array of strings representing strengths for person",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/iWAMAttitudeSorterReportPatternData"
+                            }
+                        },
+                        "development": {
+                            "description": "Array of strings representing areas of development for person",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/iWAMAttitudeSorterReportPatternData"
+                            }
+                        }
+                    }
+                },
+                "extra_texts": {
+                    "description": "additional report texts",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "description": "ID of the string",
+                                "type": "string"
+                            },
+                            "text": {
+                                "description": "extra string content",
+                                "type": "string"
+                            }
+                        }
+                    }
                 }
             }
         },
