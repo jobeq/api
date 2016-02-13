@@ -13,7 +13,6 @@
     },
     "host": "http://jobeq.info",
     "schemes": [
-        "https",
         "http"
     ],
     "basePath": "/api_test",
