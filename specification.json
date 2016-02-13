@@ -11,7 +11,7 @@
         },
         "version": "2.0.0"
     },
-    "host": "jobeq.net",
+    "host": "http://jobeq.info",
     "schemes": [
         "https",
         "http"
