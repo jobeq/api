@@ -16,7 +16,7 @@
         "https",
         "http"
     ],
-    "basePath": "/api",
+    "basePath": "/api_test",
     "consumes": [
         "application/json"
     ],
