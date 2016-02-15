@@ -484,9 +484,6 @@
                     },
                     {
                         "$ref": "#/parameters/modelIDParam"
-                    },
-                    {
-                        "$ref": "#/parameters/stdgrpParam"
                     }
                 ],
                 "tags": [
@@ -502,7 +499,7 @@
                         }
                     },
                     "400": {
-                        "description": "Person didn't complete iWAM, or invalid standard group parameter",
+                        "description": "Person didn't complete iWAM",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -1031,14 +1028,24 @@
             "title": "scores for iWAM model",
             "description": "representatin person score for iWAM model",
             "required": [
-                "modelID",
+                "model",
                 "score"
             ],
             "properties": {
-                "modelID": {
-                    "description": "ID of the iWAM model for which score is calculated",
-                    "type": "integer",
-                    "format": "int32"
+                "model": {
+                    "description": "iWAM model information",
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "description" : "Model ID",
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "name": {
+                            "description": "Model name",
+                            "type": "string"
+                        }
+                    }
                 },
                 "score": {
                     "description": "overall score for iWAM model",
