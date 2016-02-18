@@ -665,13 +665,15 @@
                         "$ref": "#/parameters/personIDParam"
                     },
                     {
-                        "name": "reportSettings",
-                        "in": "body",
-                        "description": "report settings",
-                        "schema": {
-                            "$ref": "#/definitions/ReportSettings"
-                        }
-                    }
+                        "$ref": "#/parameters/cugIDParam"
+                    },
+                    {
+                        "$ref": "#/parameters/stdgrpParam"
+                    },
+                    {
+                        "$ref": "#/parameters/languageParam"
+                    },
+
                 ],
                 "responses": {
                     "200": {
@@ -786,6 +788,12 @@
             "type": "integer",
             "format": "int32"
         },
+        "cugIDParam": {
+            "name": "cugID",
+            "in": "query",
+            "description": "ID of the CUG",
+            "type": "string"
+        },
         "modelIDParam": {
             "name": "modelID",
             "in": "path",
@@ -795,9 +803,15 @@
             "format": "int32"
         },
         "stdgrpParam": {
-            "name": "stdgrp",
+            "name": "stdgrpID",
             "in": "query",
             "description": "standard group ID",
+            "type": "string"
+        },
+        "languageParam": {
+            "name": "language",
+            "in": "query",
+            "description": "ISO language code",
             "type": "string"
         }
     },
@@ -1074,15 +1088,19 @@
             "description": "representation one pattern information used in iWAM attitude sorter report",
             "required": [
                 "label",
-                "text"
+                "description"
             ],
             "properties": {
                 "label": {
-                    "description": "current patern label",
+                    "description": "current pattern label",
                     "type": "string"
                 },
                 "description": {
-                    "description": "description fro current pattern",
+                    "description": "description for current pattern",
+                    "type": "string"
+                },
+                "job_advice": {
+                    "description": "job advice related to current pattern",
                     "type": "string"
                 }
             }
@@ -1100,9 +1118,16 @@
                 "settings": {
                     "description": "current report settings",
                     "type": "object",
-                    "allOf": [{
-                        "$ref": "#/definitions/ReportSettings"
-                    }]
+                    "properties": {
+                        "standardGroupID": {
+                            "description" : "id of standard group",
+                            "type": "string"
+                        },
+                        "language": {
+                            "description": "current report language",
+                            "type": "string"
+                        }
+                    }
                 },
                 "person": {
                     "description": "personal info",
