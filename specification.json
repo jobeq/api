@@ -259,7 +259,7 @@
             },
             "get": {
                 "summary": "get iWAM scores for person",
-                "description": "retrieve iWAM scores for person. If person didn't complete iWAM, error will be returned. If person completed iWAM more then once, the latest test data would be returned",
+                "description": "retrieve iWAM scores for person. If person didn't complete iWAM, error will be returned. If person completed iWAM more then once, the latest test data would be returned. Note: one jobEQ credit will be charged in case if current API all is the first attempt to use personal iWAM data.",
                 "operationId": "get_person_iwam_scores",
                 "parameters": [
                     {
@@ -275,14 +275,9 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "array of iWAM pattern scores",
+                        "description": "iWAM scores data",
                         "schema": {
-                            "type": "array",
-                            "minItems": 40,
-                            "maxItems": 40,
-                            "items": {
-                                "$ref": "#/definitions/iWAMPatternsScore"
-                            }
+                            "$ref": "#/definitions/iWAMScores"
                         }
                     },
                     "403": {
@@ -312,6 +307,7 @@
                 }
             }
         },
+
         "/people/{personID}/surveys/iwam/status": {
             "get": {
                 "summary": "get person iWAM status",
@@ -361,6 +357,7 @@
                 }
             }
         },
+
         "/people/{personID}/storage": {
             "get": {
                 "summary": "get person storage info",
@@ -473,10 +470,10 @@
                 }
             }
         },
-        "/people/{personID}/surveys/iwam/{modelID}/scores": {
+        "/people/{personID}/surveys/iwam/model/{modelID}/scores": {
             "get": {
                 "summary": "get person score for iWAM model",
-                "description": "retrieve personal score for iWAM model. To perform this operation current HR user should have access to modeling tools and to specific provided model.",
+                "description": "retrieve personal score for iWAM model. To perform this operation current HR user should have access to modeling tools and to specific provided model. Note: one jobEQ credit will be charged in case if current API all is the first attempt to use personal iWAM data.",
                 "operationId": "get_person_iwam_model_scores",
                 "parameters": [
                     {
@@ -672,7 +669,7 @@
                     },
                     {
                         "$ref": "#/parameters/languageParam"
-                    },
+                    }
 
                 ],
                 "responses": {
@@ -820,18 +817,19 @@
             "title": "pin",
             "description": "sha1 hash of person pin code",
             "properties": {
-                "pin_hash": {
+                "pinHash": {
                     "type": "string"
                 }
             }
         },
+
         "PersonIwamStatus": {
-            "title": "iwam_status",
+            "title": "person iWAM status",
             "required": [
-                "iwam_status"
+                "iwamStatus"
             ],
             "properties": {
-                "iwam_status": {
+                "iwamStatus": {
                     "type": "string",
                     "description": "current personal iWAM status, possible values are: 'n' - iWAM is not available for person, 't' - iWAM was completed by person and no new iWAM data can be submitted, '<integer>' - iWAM was completed at least once and new iWAM can be submitted (the value of integer shows how many iWAMs are stored for person already) ",
                     "enum": [
@@ -842,10 +840,11 @@
                 }
             }
         },
+
         "Person": {
             "type": "object",
             "title": "person",
-            "description": "representatin of personal data",
+            "description": "representation of personal data",
             "required": [
                 "firstName",
                 "lastName",
@@ -876,11 +875,11 @@
                     "minLength": 2,
                     "maxLength": 2
                 },
-                "middle_name": {
+                "middleName": {
                     "type": "string",
                     "description": "middle name"
                 },
-                "postal_code": {
+                "postalCode": {
                     "type": "string"
                 },
                 "email": {
@@ -935,7 +934,7 @@
                     "minLength": 2,
                     "maxLength": 2
                 },
-                "job_title": {
+                "jobTitle": {
                     "description": "the title of person job",
                     "type": "string"
                 },
@@ -960,6 +959,7 @@
                 }
             }
         },
+
         "ExtraPersonInfoModel": {
             "title": "extra personal info item",
             "description": "represents extra data for person",
@@ -976,6 +976,7 @@
                 }
             }
         },
+
         "iWAMPatternsScore": {
             "title": "score for single iWAM pattern",
             "description": "representation of the score for one pattern",
@@ -999,22 +1000,22 @@
                         "OF7M",
                         "OF8P",
                         "OF8M",
-                        "AC1",
-                        "AC2",
-                        "AC3",
-                        "PR1",
-                        "PR2",
-                        "PR3",
-                        "CR1",
-                        "CR2",
-                        "CR3",
-                        "TO1",
-                        "TO2",
-                        "TO3",
-                        "RS1",
-                        "RS2",
-                        "RS3",
-                        "RS4",
+                        "So1",
+                        "So2",
+                        "So3",
+                        "WA1",
+                        "WA2",
+                        "WA3",
+                        "TP1",
+                        "TP2",
+                        "TP3",
+                        "Mo1",
+                        "Mo2",
+                        "Mo3",
+                        "N1",
+                        "N2",
+                        "N3",
+                        "N4",
                         "CO1",
                         "CO2",
                         "CO3",
@@ -1023,18 +1024,38 @@
                         "CO6",
                         "CO7",
                         "CO8",
-                        "PF1",
-                        "PF2",
-                        "PF3",
-                        "PF4",
-                        "PF5",
-                        "PF6",
-                        "PF7",
-                        "PF8"
+                        "IF1",
+                        "IF2",
+                        "IF3",
+                        "IF4",
+                        "IF5",
+                        "IF6",
+                        "IF7",
+                        "IF8"
                     ]
                 },
                 "score": {
                     "type": "integer"
+                }
+            }
+        },
+
+        "iWAMScores": {
+            "title": "scores for iWAM",
+            "description": "representatin person scores for iWAM",
+            "required": [
+                "scores"
+            ],
+            "properties": {
+                "standardGroup": {
+                    "$ref": "#/definitions/standardGroup"
+                },
+                "scores": {
+                    "description": "Array of iWAM scores",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iWAMPatternsScore"
+                    }
                 }
             }
         },
@@ -1061,26 +1082,43 @@
                         }
                     }
                 },
-                "score": {
-                    "description": "overall score for iWAM model",
-                    "type": "integer"
+                "scores": {
+                    "description": "scores data for iWAM model",
+                    "type": "object",
+                    "properties": {
+                        "total": {
+                            "description" : "total personal score for model",
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "red": {
+                            "description": "how many times person appeared in the red zone",
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "green": {
+                            "description": "how many times person appeared in the green zone",
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "orange": {
+                            "description": "how many times person appeared in the orange zone",
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "grey": {
+                            "description": "how many times person appeared in the grey zone",
+                            "type": "integer",
+                            "format": "int32"
+                        }
+                    }
                 },
-                "red": {
-                    "description": "how many times person apppeared in the red zone",
-                    "type": "integer"
-                },
-                "green": {
-                    "description": "how many times person apppeared in the green zone",
-                    "type": "integer"
-                },
-                "orange": {
-                    "description": "how many times person apppeared in the orange zone",
-                    "type": "integer"
-                },
-                "grey": {
-                    "description": "how many times person apppeared in the grey zone",
-                    "type": "integer"
+                "maxModelScore": {
+                    "description": "maximum possible score for model",
+                    "type": "integer",
+                    "format": "int32"
                 }
+
             }
         },
         "iWAMAttitudeSorterReportPatternData": {
@@ -1099,12 +1137,36 @@
                     "description": "description for current pattern",
                     "type": "string"
                 },
-                "job_advice": {
+                "jobAdvice": {
                     "description": "job advice related to current pattern",
                     "type": "string"
                 }
             }
         },
+
+        "standardGroup": {
+            "title": "standrd group information",
+            "description": "representation standard group data",
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "description": "id of standard group",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "name of standard group",
+                    "type": "string"
+                },
+                "country": {
+                    "description": "country of standard group",
+                    "type": "string"
+                }
+            }
+        },
+
         "iWAMAttitudeSorterReport": {
             "title": "iWAM attitude sorter report",
             "description": "representation of iWAM Attitude sorter report",
@@ -1121,6 +1183,10 @@
                     "properties": {
                         "standardGroupID": {
                             "description" : "id of standard group",
+                            "type": "string"
+                        },
+                        "cugID": {
+                            "description" : "id of the CUG",
                             "type": "string"
                         },
                         "language": {
@@ -1152,18 +1218,7 @@
                     }
                 },
                 "standardGroup": {
-                    "description": "standard group info",
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "description": "Standard group ID",
-                            "type": "string"
-                        },
-                        "title": {
-                            "type": "string",
-                            "description": "Standard group title"
-                        }
-                    }
+                    "$ref": "#/definitions/standardGroup"
                 },
                 "content": {
                     "description": "report content",
@@ -1204,6 +1259,7 @@
                 }
             }
         },
+
         "IwamQuestionTranslation": {
             "title": "single iWAM question translation",
             "description": "strings of iWAM question and endings for specified language",
@@ -1230,6 +1286,7 @@
                 }
             }
         },
+
         "IwamAnswer": {
             "title": "iWAM answer",
             "description": "the string of 5 digins representing answer on iWAM question (example 43125)",
@@ -1246,6 +1303,7 @@
                 }
             }
         },
+
         "StorageInfo": {
             "title": "storage object",
             "description": "storage information",
@@ -1265,6 +1323,7 @@
                 }
             }
         },
+
         "ReportSettings": {
             "title": "report settings",
             "description": "a set of settings with common parameters for various jobEQ reports",
@@ -1286,6 +1345,7 @@
                 }
             }
         },
+
         "Error": {
             "type": "object",
             "properties": {
@@ -1302,17 +1362,18 @@
             }
         }
     },
+
     "securityDefinitions": {
-        "jobeq_api_auth": {
+        "jobeqAPIAuth": {
             "type": "oauth2",
             "description": "Valid acceess token should be provided with every API request",
-            "authorizationUrl": "http://jobeq.net/oauth/dialog",
+            "authorizationUrl": "http://www.jobeq.net/oauth/dialog",
             "flow": "implicit"
         }
     },
     "security": [
         {
-            "jobeq_api_auth": []
+            "jobeqAPIAuth": []
         }
     ]
 }
