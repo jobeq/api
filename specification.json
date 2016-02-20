@@ -24,10 +24,6 @@
     ],
     "tags": [
         {
-            "name": "iwam",
-            "description": "set of functions related to iWAM questionnaire"
-        },
-        {
             "name": "people",
             "description": "set of functions related to personal data"
         },
@@ -38,10 +34,6 @@
         {
             "name": "texts",
             "description": "get translated texts"
-        },
-        {
-            "name": "model",
-            "description": "functions related to modeling"
         }
     ],
     "paths": {
@@ -174,11 +166,116 @@
                 }
             }
         },
-        "/people/{personID}/surveys/iwam/scores": {
+
+        "/people/{personID}/surveys/iwam/scores/absolute": {
+            "get": {
+                "summary": "get absolute iWAM scores for person",
+                "description": "retrieve iWAM scores for person. If person didn't complete iWAM, error will be returned. If person completed iWAM more then once, the latest test data would be returned. Note: one jobEQ credit will be charged in case if current API call is the first attempt to use personal iWAM data.",
+                "operationId": "get_person_iwam_scores_absolute",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    }
+                ],
+                "tags": [
+                    "people"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "iWAM absolute scores data",
+                        "schema": {
+                            "$ref": "#/definitions/iWAMScoresAbsolute"
+                        }
+                    },
+                    "403": {
+                        "description": "API user doesn't have access to requested person, or not enough permisions to process request",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "incorrect person ID",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "409": {
+                        "description": "iWAM is not available for provided person",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+
+        "/people/{personID}/surveys/iwam/scores/relative/{stdgrpID}": {
+            "get": {
+                "summary": "get relative iWAM scores for person",
+                "description": "retrieve iWAM scores for person relative to provided standard group. If person didn't complete iWAM, error will be returned. If person completed iWAM more then once, the latest test data would be returned. Note: one jobEQ credit will be charged in case if current API call is the first attempt to use personal iWAM data.",
+                "operationId": "get_person_iwam_scores_relative",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    },
+                    {
+                        "name": "stdgrpID",
+                        "description": "standard group used to calculate personal iWAM scores",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    }
+
+                ],
+                "tags": [
+                    "people"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "iWAM relative scores data",
+                        "schema": {
+                            "$ref": "#/definitions/iWAMScoresRelative"
+                        }
+                    },
+                    "403": {
+                        "description": "API user doesn't have access to requested person, or not enough permisions to process request",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "incorrect person ID",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "409": {
+                        "description": "iWAM is not available for provided person",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+
+        "/people/{personID}/surveys/iwam/answers": {
             "put": {
                 "summary": "submit iWAM data for person",
                 "description": "submit iWAM answers for person",
-                "operationId": "post_person_iwam",
+                "operationId": "put_person_iwam",
                 "parameters": [
                     {
                         "$ref": "#/parameters/personIDParam"
@@ -224,8 +321,7 @@
                     }
                 ],
                 "tags": [
-                    "people",
-                    "iwam"
+                    "people"
                 ],
                 "responses": {
                     "204": {
@@ -256,55 +352,6 @@
                         }
                     }
                 }
-            },
-            "get": {
-                "summary": "get iWAM scores for person",
-                "description": "retrieve iWAM scores for person. If person didn't complete iWAM, error will be returned. If person completed iWAM more then once, the latest test data would be returned. Note: one jobEQ credit will be charged in case if current API all is the first attempt to use personal iWAM data.",
-                "operationId": "get_person_iwam_scores",
-                "parameters": [
-                    {
-                        "$ref": "#/parameters/personIDParam"
-                    },
-                    {
-                        "$ref": "#/parameters/stdgrpParam"
-                    }
-                ],
-                "tags": [
-                    "people",
-                    "iwam"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "iWAM scores data",
-                        "schema": {
-                            "$ref": "#/definitions/iWAMScores"
-                        }
-                    },
-                    "403": {
-                        "description": "API user doesn't have access to requested person, or not enough permisions to process request",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "404": {
-                        "description": "incorrect person ID",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "409": {
-                        "description": "iWAM is not available for provided person",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "default": {
-                        "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
             }
         },
 
@@ -319,8 +366,7 @@
                     }
                 ],
                 "tags": [
-                    "people",
-                    "iwam"
+                    "people"
                 ],
                 "responses": {
                     "200": {
@@ -484,9 +530,7 @@
                     }
                 ],
                 "tags": [
-                    "people",
-                    "iwam",
-                    "model"
+                    "people"
                 ],
                 "responses": {
                     "200": {
@@ -662,13 +706,26 @@
                         "$ref": "#/parameters/personIDParam"
                     },
                     {
-                        "$ref": "#/parameters/cugIDParam"
+                        "name": "cugID",
+                        "description": "ID of the CUG, used to determine whether to show jobAdvice in report, if not provided, the jobAdvice will not be displayed",
+                        "in": "query",
+                        "type": "string",
+                        "required": false
                     },
                     {
-                        "$ref": "#/parameters/stdgrpParam"
+                        "name": "stdgrpID",
+                        "in": "query",
+                        "description": "standard group ID. If not provided, then system will pick standard group based on person work country",
+                        "required": false,
+                        "type": "string"
                     },
                     {
-                        "$ref": "#/parameters/languageParam"
+                        "name": "language",
+                        "in": "query",
+                        "description": "ISO language code, if not provided, then English will be used",
+                        "type": "string",
+                        "required": false,
+                        "default": "en"
                     }
 
                 ],
@@ -714,9 +771,7 @@
                 "description": "get iWAM ranking report for person in HTML file format. The response is HTML file named iwam_ranking_report.html with CUG header and footer and report content",
                 "operationId": "get_reports_surveys_iwam_ranking",
                 "tags": [
-                    "reports",
-                    "iwam",
-                    "model"
+                    "reports"
                 ],
                 "parameters": [
                     {
@@ -785,12 +840,6 @@
             "type": "integer",
             "format": "int32"
         },
-        "cugIDParam": {
-            "name": "cugID",
-            "in": "query",
-            "description": "ID of the CUG",
-            "type": "string"
-        },
         "modelIDParam": {
             "name": "modelID",
             "in": "path",
@@ -798,18 +847,6 @@
             "required": true,
             "type": "integer",
             "format": "int32"
-        },
-        "stdgrpParam": {
-            "name": "stdgrpID",
-            "in": "query",
-            "description": "standard group ID",
-            "type": "string"
-        },
-        "languageParam": {
-            "name": "language",
-            "in": "query",
-            "description": "ISO language code",
-            "type": "string"
         }
     },
     "definitions": {
@@ -1040,11 +1077,29 @@
             }
         },
 
-        "iWAMScores": {
-            "title": "scores for iWAM",
-            "description": "representatin person scores for iWAM",
+        "iWAMScoresAbsolute": {
+            "title": "absolute scores for iWAM",
+            "description": "representation of absolute person scores for iWAM",
             "required": [
                 "scores"
+            ],
+            "properties": {
+                "scores": {
+                    "description": "Array of iWAM scores",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iWAMPatternsScore"
+                    }
+                }
+            }
+        },
+
+        "iWAMScoresRelative": {
+            "title": "scores for iWAM relative to standard group",
+            "description": "representation of person scores for iWAM relative to standard group",
+            "required": [
+                "scores",
+                "standardGroup"
             ],
             "properties": {
                 "standardGroup": {
@@ -1064,7 +1119,7 @@
             "description": "representatin person score for iWAM model",
             "required": [
                 "model",
-                "score"
+                "scores"
             ],
             "properties": {
                 "model": {
