@@ -281,51 +281,22 @@
                         "$ref": "#/parameters/personIDParam"
                     },
                     {
-                        "name": "answers",
+                        "name": "IwamSurveyData",
+                        "description": "iWAM survey data",
                         "in": "body",
-                        "description": "iWAM answers",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "minItems": 40,
-                            "maxItems": 40,
-                            "items": {
-                                "$ref": "#/definitions/IwamAnswer"
-                            }
+                            "$ref": "#/definitions/IwamSurveyData"
                         }
-                    },
-                    {
-                        "name": "language",
-                        "in": "query",
-                        "description": "language used for iWAM (ISO 639-1 code)",
-                        "type": "string",
-                        "minLength": 2,
-                        "maxLength": 2,
-                        "required": true
-                    },
-                    {
-                        "name": "startTime",
-                        "in": "query",
-                        "description": "when iWAM was started, full date with seconds when person started iWAM quiestionnaire",
-                        "type": "string",
-                        "format": "date-time",
-                        "required": true
-                    },
-                    {
-                        "name": "endTime",
-                        "in": "query",
-                        "description": "when iWAM was started, full date with seconds when person finished iWAM quiestionnaire",
-                        "type": "string",
-                        "format": "date-time",
-                        "required": true
+
                     }
                 ],
                 "tags": [
                     "people"
                 ],
                 "responses": {
-                    "204": {
-                        "description": "iWAM data for person was added"
+                    "200": {
+                        "description": "iWAM answers for person were updated"
                     },
                     "403": {
                         "description": "API user doesn't have access to requested person, or not enough permisions to process request",
@@ -849,7 +820,48 @@
             "format": "int32"
         }
     },
+
     "definitions": {
+
+        "IwamSurveyData": {
+            "title": "iWAM survey data",
+            "description": "iWAM survey data",
+            "type": "object",
+            "required": [
+                "answers",
+                "language",
+                "startTime",
+                "endTime"
+            ],
+            "properties": {
+                "answers": {
+                    "description": "array with iWAM answers",
+                    "type": "array",
+                    "minItems": 40,
+                    "maxItems": 40,
+                    "items": {
+                        "description": "the string of 5 digits representing answer on iWAM question (example 43125)",
+                        "type":"string",
+                        "minLength": 5,
+                        "maxLength": 5
+                    }
+                },
+                "language": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "when iWAM was started, full date with seconds when person started iWAM quiestionnaire",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "endTime": {
+                    "description": "when iWAM was started, full date with seconds when person finished iWAM quiestionnaire",
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+
         "PersonPIN": {
             "title": "pin",
             "description": "sha1 hash of person pin code",
@@ -1127,7 +1139,7 @@
                     "type": "object",
                     "properties": {
                         "id": {
-                            "description" : "Model ID",
+                            "description": "Model ID",
                             "type": "integer",
                             "format": "int32"
                         },
@@ -1142,7 +1154,7 @@
                     "type": "object",
                     "properties": {
                         "total": {
-                            "description" : "total personal score for model",
+                            "description": "total personal score for model",
                             "type": "integer",
                             "format": "int32"
                         },
@@ -1237,11 +1249,11 @@
                     "type": "object",
                     "properties": {
                         "standardGroupID": {
-                            "description" : "id of standard group",
+                            "description": "id of standard group",
                             "type": "string"
                         },
                         "cugID": {
-                            "description" : "id of the CUG",
+                            "description": "id of the CUG",
                             "type": "string"
                         },
                         "language": {
@@ -1255,7 +1267,7 @@
                     "type": "object",
                     "properties": {
                         "name": {
-                            "description" : "Full name of person",
+                            "description": "Full name of person",
                             "type": "string"
                         },
                         "testDate": {
@@ -1338,23 +1350,6 @@
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-
-        "IwamAnswer": {
-            "title": "iWAM answer",
-            "description": "the string of 5 digins representing answer on iWAM question (example 43125)",
-            "properties": {
-                "number": {
-                    "description": "number of question",
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 40
-                },
-                "order": {
-                    "description": "integer with 5 digits representing iWAM endings order, each digit corresponds to initial ending position. Example 53124 measns that initial ending 5 was placed on 1st position, ending 3 was placed onm 2nd position etc.",
-                    "type": "integer"
                 }
             }
         },
