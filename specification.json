@@ -37,20 +37,29 @@
         }
     ],
     "paths": {
-        "/people/{cugID}": {
+        "/people/{cugID}/{storageroomID}": {
             "post": {
-                "summary": "register new person in the CUG",
+                "summary": "register new person in the CUG and storageroom",
                 "description": "register new person in jobEQ database, client must provide a CUG where to put the person record, profile will be added to default CUG inbox storageroom",
                 "operationId": "person_register",
                 "parameters": [
                     {
                         "name": "cugID",
                         "in": "path",
-                        "description": "ID of CUG to regester person at. Current API client should have enough access permissions to register people in requested CUG",
+                        "description": "ID of CUG to register person at. Current API client should have enough access permissions to register people in requested CUG",
                         "required": true,
                         "type": "string",
                         "maxLength": 6,
-                        "minLength": 6
+                        "minLength": 7
+                    },
+                    {
+                        "name": "storageroomID",
+                        "in": "path",
+                        "description": "ID of storageroom of the CUG to register person at. Current API client should have enough access permissions to register people in requested storageroom",
+                        "required": true,
+                        "type": "string",
+                        "maxLength": 6,
+                        "minLength": 8
                     },
                     {
                         "name": "person",
@@ -58,7 +67,7 @@
                         "description": "personal info",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/Person"
+                            "$ref": "#/definitions/PersonRegistrationData"
                         }
                     }
                 ],
@@ -890,7 +899,7 @@
             }
         },
 
-        "Person": {
+        "PersonRegistrationData": {
             "type": "object",
             "title": "person",
             "description": "representation of personal data",
