@@ -75,13 +75,10 @@
                     "people"
                 ],
                 "responses": {
-                    "201": {
-                        "description": "new person record was created and added to the CUG",
-                        "headers": {
-                            "Location": {
-                                "description": "URI to retrieve person record with API",
-                                "type": "string"
-                            }
+                    "200": {
+                        "description": "New person record was created and added to the CUG and storageroom",
+                        "schema": {
+                            "$ref": "#/definitions/NewPersonID"
                         }
                     },
                     "401": {
@@ -832,6 +829,37 @@
 
     "definitions": {
 
+        "NewPersonID": {
+            "title": "person ID",
+            "description": "ID of new registered person",
+            "type": "object",
+            "properties": {
+                "personID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+
+        "IwamAnswerData": {
+            "title": "iWAM answer",
+            "description": "data for ordering of one iWAM survey question",
+            "type":"object",
+            "properties": {
+                "number": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 40
+                },
+                "order": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 5
+                }
+            }
+        },
+
         "IwamSurveyData": {
             "title": "iWAM survey data",
             "description": "iWAM survey data",
@@ -849,10 +877,7 @@
                     "minItems": 40,
                     "maxItems": 40,
                     "items": {
-                        "description": "the string of 5 digits representing answer on iWAM question (example 43125)",
-                        "type":"string",
-                        "minLength": 5,
-                        "maxLength": 5
+                        "$ref": "#/definitions/IwamAnswerData"
                     }
                 },
                 "language": {
@@ -1340,6 +1365,7 @@
             "title": "single iWAM question translation",
             "description": "strings of iWAM question and endings for specified language",
             "required": [
+                "number",
                 "language",
                 "question",
                 "endings"
@@ -1349,6 +1375,11 @@
                     "type": "string",
                     "description": "current language"
                 },
+                "number": {
+                    "type": "integer",
+                    "format": "int32",
+                    "description": "position of current question in iWAM survey"
+                },
                 "question": {
                     "description": "question language text",
                     "type": "string"
@@ -1357,8 +1388,30 @@
                     "description": "array of endings for the question. Order is the same as it appears in iWAM survey on jobEQ web site",
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/IwamQuestionEnding"
                     }
+                }
+            }
+        },
+
+        "IwamQuestionEnding": {
+            "title": "iWAM question ending",
+            "description": "one iWAM question ending with its initial position in iWAM survey",
+            "required": [
+                "position",
+                "text"
+            ],
+            "properties": {
+                "position": {
+                    "description": "position in endings list for current question",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 5
+                },
+                "text": {
+                    "description": "text of the ending",
+                    "type": "string"
                 }
             }
         },
