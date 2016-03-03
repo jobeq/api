@@ -1571,7 +1571,7 @@
                     }
                 },
                 "model_statistics": {
-                    "description": "Statistics fro current model being used",
+                    "description": "Statistics for current model being used",
                     "type": "object",
                     "properties": {
                         "parameters": {
