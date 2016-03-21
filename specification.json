@@ -1739,8 +1739,8 @@
         "jobeqAPIAuth": {
             "type": "oauth2",
             "description": "Valid acceess token should be provided with every API request",
-            "authorizationUrl": "http://www.jobeq.net/oauth/dialog",
-            "flow": "implicit"
+            "flow": "application",
+            "tokenUrl": "http://www.jobeq.net/oauth/access_token"
         }
     },
     "security": [
