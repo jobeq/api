@@ -1,0 +1,1469 @@
+swagger: '2.0'
+info:
+  title: jobEQ API
+  description: >-
+    jobEQ API documentation based on Swagger specification. To start using jobEQ
+    API application should be registered by jobEQ and receive secret key, please
+    email us to register your application. Application should perform
+    authentication based on oAuth2 protocol. You can find detailed description
+    of authentication procedure in <a
+    href="https://github.com/jobeq/api/blob/master/authorization.md">this
+    document</a>.
+  termsOfService: public
+  contact:
+    name: jobEQ
+    url: 'http://jobeq.info/api/'
+    email: helpdesk@jobeq.net
+  version: 2.0.0
+host: jobeq.info
+schemes:
+  - http
+basePath: /api_test
+consumes:
+  - application/json
+produces:
+  - application/json
+tags:
+  - name: people
+    description: set of functions related to personal data
+  - name: reports
+    description: retrieve reports for people
+  - name: texts
+    description: get translated texts
+  - name: modeling
+    description: get data related to jobEQ modeling
+paths:
+  '/people/{cugID}/{storageroomID}':
+    post:
+      summary: Register new person in the CUG and storageroom
+      description: >-
+        Register new person in jobEQ database, client must provide a CUG and
+        storageroom where to put the person record.
+      operationId: person_register
+      parameters:
+        - name: cugID
+          in: path
+          description: >-
+            ID of CUG to register person at. Current API client should have
+            enough access permissions to register people in requested CUG
+          required: true
+          type: string
+          maxLength: 6
+          minLength: 7
+        - name: storageroomID
+          in: path
+          description: >-
+            ID of storageroom of the CUG to register person at. Current API
+            client should have enough access permissions to register people in
+            requested storageroom. Note that default inbox storageroom for the
+            CUG has the same ID as CUG.
+          required: true
+          type: string
+          maxLength: 6
+          minLength: 8
+        - name: person
+          in: body
+          description: Collection of personal details.
+          required: true
+          schema:
+            $ref: '#/definitions/PersonRegistrationData'
+      tags:
+        - people
+      responses:
+        '200':
+          description: >-
+            New person record was created and added to the CUG and storageroom.
+            The new personID is returned.
+          schema:
+            $ref: '#/definitions/NewPersonID'
+        '400':
+          description: >-
+            Bad request: invalid CUG, or invalid storageroom, or invalid
+            personal data.
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Forbidden: API user doesn't have access to requested CUG, or API
+            user doesn't have access to requested storageroom, or requested
+            storageroom is not linked to requested CUG
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: >-
+            Internal Server Error: error while adding peron to DB, or internal
+            server error.
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/people/{personID}/pin':
+    get:
+      summary: Get person PIN code hash
+      description: >-
+        Retrieve person pin code sha1 hash, this might be useful when doing
+        person authentication. Note that HR user needs specific permissions to
+        retrieve PIN.
+      operationId: get_person_pin
+      parameters:
+        - $ref: '#/parameters/personIDParam'
+      tags:
+        - people
+      responses:
+        '200':
+          description: Hash code of person PIN
+          schema:
+            $ref: '#/definitions/PersonPIN'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Forbidden: API user doesn't have access to personal data or not
+            enough permissions to process request
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: 'Not Found: personID is invalid or person doesn''t exist'
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/people/{personID}/surveys/iwam/scores/absolute':
+    get:
+      summary: Get absolute iWAM scores for person
+      description: >-
+        Retrieve iWAM scores for person. If person didn't complete iWAM, error
+        will be returned. If person completed iWAM more then once, the latest
+        test data would be returned. Note: one jobEQ credit will be charged in
+        case if current API call is the first attempt to use personal iWAM data.
+      operationId: get_person_iwam_scores_absolute
+      parameters:
+        - $ref: '#/parameters/personIDParam'
+      tags:
+        - people
+      responses:
+        '200':
+          description: iWAM absolute scores data
+          schema:
+            $ref: '#/definitions/iWAMScoresAbsolute'
+        '400':
+          description: 'Bad request: person didn''t complete iWAM.'
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Forbidden: API user doesn't have access to requested CUG, or API
+            user doesn't have access to requested storageroom.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: 'Not Found: personID is invalid or person doesn''t exist'
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: >-
+            Internal Server Error: Error occurred when charging credits or
+            internal server error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/people/{personID}/surveys/iwam/scores/relative/{stdgrpID}':
+    get:
+      summary: Get relative iWAM scores for person
+      description: >-
+        Retrieve iWAM scores for person relative to provided standard group. If
+        person didn't complete iWAM, error will be returned. If person completed
+        iWAM more then once, the latest test data would be returned. Note: one
+        jobEQ credit will be charged in case if current API call is the first
+        attempt to use personal iWAM data.
+      operationId: get_person_iwam_scores_relative
+      parameters:
+        - $ref: '#/parameters/personIDParam'
+        - name: stdgrpID
+          description: Standard group used to calculate personal iWAM scores
+          in: path
+          required: true
+          type: string
+      tags:
+        - people
+      responses:
+        '200':
+          description: iWAM relative scores data
+          schema:
+            $ref: '#/definitions/iWAMScoresRelative'
+        '400':
+          description: >-
+            Bad request: person didn't complete iWAM, or invalid standardgroup
+            ID, or requested standardgroup doesn't exist.
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Forbidden: API user doesn't have access to requested CUG, or API
+            user doesn't have access to requested storageroom, or API user
+            doesn' have access to requested standardgroup.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: 'Not Found: personID is invalid or person doesn''t exist'
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: >-
+            Internal Server Error: Error occurred when charging credits or
+            internal server error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/people/{personID}/surveys/iwam/answers':
+    put:
+      summary: Submit iWAM data for person
+      description: >-
+        Submit iWAM answers for person, provide an array of reordered endings
+        from iWAM survey.
+      operationId: put_person_iwam
+      parameters:
+        - $ref: '#/parameters/personIDParam'
+        - name: IwamSurveyData
+          description: 'iWAM survey data: reordered endings from iWAM survey'
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/IwamSurveyData'
+      tags:
+        - people
+      responses:
+        '200':
+          description: iWAM answers for person were updated
+        '400':
+          description: >-
+            Bad request: iWAM is not allowed for person, or iWAM is already
+            submitted, or invalid iWAM input data.
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Forbidden: API user doesn't have access to personal data or not
+            enough permissions to process request
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: 'Not Found: personID is invalid or person doesn''t exist'
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: 'Internal Server Error: error occurred when adding iWAM data in DB'
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/people/{personID}/surveys/iwam/status':
+    get:
+      summary: Get person iWAM status
+      description: Retrieve current person iWAM status
+      operationId: get_person_iwam_status
+      parameters:
+        - $ref: '#/parameters/personIDParam'
+      tags:
+        - people
+      responses:
+        '200':
+          description: Current iWAM status of the person
+          schema:
+            $ref: '#/definitions/PersonIwamStatus'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Forbidden: API user doesn't have access to personal data or not
+            enough permissions to process request
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: 'Not Found: personID is invalid or person doesn''t exist'
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/people/{personID}/storage':
+    get:
+      summary: Get person storage info
+      description: >-
+        Retrieve information about CUGs and storagerooms where person is
+        registered. This will return only those CUGs and storagerooms which are
+        accessible to current API user.
+      operationId: get_person_storage
+      parameters:
+        - $ref: '#/parameters/personIDParam'
+      tags:
+        - people
+      responses:
+        '200':
+          description: >-
+            Information about CUGs and storagerooms where person ID is stored.
+            The result is array of StorageInfo objects. If one of the array
+            members is an object with empty storagerooms array, it means that
+            person is registered in the CUG, but removed from all storagerooms.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/StorageInfo'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Forbidden: API user doesn't have access to personal data or not
+            enough permissions to process request
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: 'Not Found: personID is invalid or person doesn''t exist'
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/texts/surveys/iwam/{language}':
+    get:
+      summary: Get texts for iWAM survey
+      description: >-
+        Retrieve texts (questions and endings) for iWAM survey for provided
+        language. See available translations in language parameter
+        specification.
+      operationId: get_texts_surveys_iwam_translations
+      parameters:
+        - name: language
+          in: path
+          description: >-
+            Language of translation (ISO 639-1), available translations are
+            defined in acceptable values
+          type: string
+          minLength: 2
+          maxLength: 2
+          required: true
+      tags:
+        - texts
+      responses:
+        '200':
+          description: iWAM translation record
+          schema:
+            type: array
+            minItems: 40
+            maxItems: 40
+            items:
+              $ref: '#/definitions/IwamQuestionTranslation'
+        '400':
+          description: 'Bad request: invalid language parameter.'
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: 'Not Found: translation for requested language does not exist'
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/people/{personID}/surveys/iwam/model/{modelID}/scores':
+    get:
+      summary: Get person score for iWAM model
+      description: >-
+        Retrieve personal score for iWAM model. To perform this operation
+        current API user should have access to modeling tools and to specific
+        provided model. Note: one jobEQ credit will be charged in case if
+        current API all is the first attempt to use personal iWAM data.
+      operationId: get_person_iwam_model_scores
+      parameters:
+        - $ref: '#/parameters/personIDParam'
+        - $ref: '#/parameters/modelIDParam'
+      tags:
+        - people
+      responses:
+        '200':
+          description: Scores for iWAM model
+          schema:
+            $ref: '#/definitions/iWAMModelScore'
+        '400':
+          description: >-
+            Bad request: invalid modelID, or person didn't complete iWAM, or
+            requested model doesn't exist.
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Forbidden: API user doesn't have access to personal data, or not
+            enough permissions to process request, or API user has limited
+            service access, or API user doesn't have access to requested model
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: 'Not Found: personID is invalid or person doesn''t exist'
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: 'Internal Server Error: error occurred when charging credits'
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/reports/surveys/iwam/{personID}/management':
+    get:
+      summary: get iWAM management report for person
+      description: >-
+        retrieve iWAM management report for person in PDF file format. HR user
+        should have permission to use management report. The response is binary
+        PDF file named iwam_management_report.pdf
+      operationId: get_reports_surveys_iwam_management
+      tags:
+        - reports
+      parameters:
+        - $ref: '#/parameters/personIDParam'
+        - name: reportSettings
+          in: body
+          description: report settings
+          schema:
+            $ref: '#/definitions/ReportSettings'
+        - name: pageFormat
+          in: query
+          description: PDF page format
+          type: string
+          enum:
+            - letter
+            - a4
+          default: letter
+        - name: sections
+          in: query
+          description: which sections to include in the report (0 means all sections)
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 14
+            - 124
+            - 134
+            - 0
+          default: 0
+        - name: s4Type
+          in: query
+          description: type of section 4
+          type: string
+          enum:
+            - graph
+            - bars
+          default: bars
+        - name: s4BarsType
+          in: query
+          description: type of Bars in section 4 (only used if s4Type is "bars" )
+          type: string
+          enum:
+            - bars
+            - lines
+            - solid
+          default: solid
+      produces:
+        - application/pdf
+      responses:
+        '200':
+          description: PDF file containing iWAM Management report
+          schema:
+            type: file
+          headers:
+            Content-type:
+              type: string
+              description: application/pdf; charset=utf-8
+            Content-Disposition:
+              type: string
+              description: attachment; filename=iwam_management_report.pdf
+        '403':
+          description: >-
+            HR user has no access to personal data, or HR user doesn't have
+            permission to use management report.  See errr message for details
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: incorrect person ID
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/reports/surveys/iwam/{personID}/attitude_sorter':
+    get:
+      summary: Get iWAM attitude sorter report for person
+      description: Get iWAM attitude sorter report for person in JSON format.
+      operationId: get_reports_surveys_iwam_attitudesorter
+      tags:
+        - reports
+      parameters:
+        - $ref: '#/parameters/personIDParam'
+        - name: cugID
+          description: >-
+            ID of the CUG, used to determine whether to show jobAdvice in
+            report, if not provided, the jobAdvice will not be displayed
+          in: query
+          type: string
+          required: false
+        - name: stdgrpID
+          in: query
+          description: >-
+            standard group ID. If not provided, then system will pick standard
+            group based on person work country
+          required: false
+          type: string
+        - name: language
+          in: query
+          description: 'ISO language code, if not provided, then English will be used'
+          type: string
+          required: false
+          default: en
+      responses:
+        '200':
+          description: Representation of report content
+          schema:
+            $ref: '#/definitions/iWAMAttitudeSorterReport'
+        '400':
+          description: >-
+            Bad request: invalid standard group ID, or invalid CUG ID, or
+            invalid language, or requested CUG was not found, or person didn't
+            complete iWAM
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Forbidden: API user doesn't have access to personal data, or not
+            enough permissions to process request, or API user doesn't have
+            access to requested standard group, or API user doesn't have access
+            to requested CUG.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: 'Not Found: personID is invalid or person doesn''t exist'
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/reports/surveys/iwam/ranking/{modelID}':
+    get:
+      summary: Get iWAM ranking report for list of people.
+      description: >-
+        Get iWAM ranking report for several people in JSON format. Note: one
+        jobEQ credit will be charged in case if current API all is the first
+        attempt to use personal iWAM data.
+      operationId: get_reports_surveys_iwam_ranking
+      tags:
+        - reports
+      parameters:
+        - $ref: '#/parameters/modelIDParam'
+        - name: people
+          in: query
+          description: CSV list of people IDs to retrieve report for
+          required: true
+          type: array
+          items:
+            type: integer
+            format: int64
+          collectionFormat: csv
+      responses:
+        '200':
+          description: Representation of report content in JSON format
+          schema:
+            $ref: '#/definitions/iWAMRankingReport'
+        '400':
+          description: >-
+            Bad request: invalid list of people IDs, or invalid modelID, or
+            requested model doesn't exist
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Forbidden: API user doesn't have access to requested model, or API
+            user does not have access to data for some people in the provided
+            list.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: 'Internal Server Error: error occurred when charging credits'
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/modeling/definition/{modelID}':
+    get:
+      summary: Get definition of the model
+      description: |
+        A formal model is a character string concatenating all parameters of the model.
+
+        REFNAME=students model 2004 (3)
+        &OF1P=RRROOOGGGGGGOOORRRRR&OF1M=RRRRRRGGGGGGOORRRRRR&OF4P=RRRROOOOGGGGGGORRRRR
+        &OF4M=RROGGGGGGGORRRRRRRRR&OF5P=RRRRRRRROGGGGGGGGUUU&OF5M=ROGGGGOORRRRRRRRRRRR
+        &OF6P=RRRRRRROOOOGGGGGGGUU&OF7P=RRRRRRRROOGGGGGGGGGG&OF7M=UGGGGGORRRRRRRRRRRRR
+        &So1=OOUGGGGORRRRRRRRRRRR&So3=RRRRRRRRRROGGGGGGGOO
+        &WA1=UUUUGGGGGGOOORRRRRRR&TP1=RRROOOGGGGGGORRRRRRR&Mo2=RRRRRROUGGGGGGGGURRR
+        &Mo3=RRRRRRROOGGGGGGGGGUU&N4=RRRRRROOOGGGGGUUURRR&Co2=OOOGGGGGGORRRRRRRRRR
+        &Co7=RRRRRROOOOGGGGGGGUUU&IF1=RRRRRRRRROOOGGGGGGGU&IF2=RRROGGGGORRRRRRRRRRR&IF4=RRRRRRROOGGGGGGGGORR
+        &ORDER=Mo2,OF5P,IF2,TP1,OF5M,IF1,OF4M,N4,OF6P,OF7P,OF1M,IF4,OF1P,OF4P,OF7M,So1,So3,WA1,Co2,Co7,Mo3,
+        &RQA=3&TRIPLE=Mo2,OF5P,IF2,TP1,&DOUBLE=OF5M,IF1,OF4M,&VIP=Mo2,OF5P,IF2,TP1,
+        &SIG=OF5M,IF1,OF4M,&BSIG=N4,OF6P,OF7P,OF1M,IF4
+      operationId: get_modeling_definition
+      tags:
+        - modeling
+      parameters:
+        - $ref: '#/parameters/modelIDParam'
+      responses:
+        '200':
+          description: String representation of the model
+          schema:
+            $ref: '#/definitions/ModelDefinition'
+        '400':
+          description: 'Bad request: invalid modelID, or requested model doesn''t exist.'
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: 'Forbidden: API user doesn''t have access to requested model.'
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+parameters:
+  personIDParam:
+    name: personID
+    in: path
+    description: jobEQ_ID for person
+    required: true
+    type: integer
+    format: int32
+  modelIDParam:
+    name: modelID
+    in: path
+    description: ID of iWAM model
+    required: true
+    type: integer
+    format: int32
+definitions:
+  NewPersonID:
+    title: person ID
+    description: ID of new registered person
+    type: object
+    properties:
+      personID:
+        type: integer
+        format: int32
+  IwamAnswerData:
+    title: iWAM answer
+    description: Data for ordering of one iWAM survey question
+    type: object
+    properties:
+      number:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 40
+      order:
+        type: string
+        minLength: 5
+        maxLength: 5
+  IwamSurveyData:
+    title: iWAM survey data
+    description: iWAM survey data
+    type: object
+    required:
+      - answers
+      - language
+      - startTime
+      - endTime
+    properties:
+      answers:
+        description: Array with iWAM answers
+        type: array
+        minItems: 40
+        maxItems: 40
+        items:
+          $ref: '#/definitions/IwamAnswerData'
+      language:
+        type: string
+      startTime:
+        description: >-
+          iWAM start date: full date with seconds when person started iWAM
+          questionnaire
+        type: string
+        format: date-time
+      endTime:
+        description: >-
+          iWAM finish date: full date with seconds when person finished iWAM
+          questionnaire
+        type: string
+        format: date-time
+  PersonPIN:
+    title: pin
+    description: sha1 hash of person pin code
+    properties:
+      pinHash:
+        type: string
+  PersonIwamStatus:
+    title: Person iWAM status
+    required:
+      - iwamStatus
+    properties:
+      iwamStatus:
+        type: string
+        description: >-
+          Current personal iWAM status, possible values are: 'n' - iWAM is not
+          available for person, 't' - iWAM was completed by person and no new
+          iWAM data can be submitted, '<integer>' - iWAM was completed at least
+          once and new iWAM can be submitted (the value of integer shows how
+          many iWAMs are stored for person already)
+        enum:
+          - 'n'
+          - t
+          - 0
+  PersonRegistrationData:
+    type: object
+    title: person
+    description: Representation of personal data
+    required:
+      - firstName
+      - lastName
+      - gender
+      - workCountry
+      - isSamecountry
+    properties:
+      firstName:
+        type: string
+        description: First name
+      lastName:
+        type: string
+        description: Last name
+      gender:
+        type: string
+        description: Gender
+        enum:
+          - f
+          - m
+      workCountry:
+        type: string
+        description: Work country ISO code
+        minLength: 2
+        maxLength: 2
+      middleName:
+        type: string
+        description: Middle name
+      postalCode:
+        type: string
+      email:
+        description: Email address
+        type: string
+        format: email
+      dateOfBirth:
+        type: string
+        description: Date of birth
+        format: date
+      yearsOfSchool:
+        description: >-
+          Number of years the person has gone to school, starting from the age
+          of 6
+        type: integer
+      occupation:
+        description: Occupation code
+        type: string
+        enum:
+          - A
+          - W
+          - I
+          - C
+          - V
+          - T
+          - E
+          - O
+          - G
+          - X
+          - H
+          - 'Y'
+          - M
+          - P
+          - R
+          - F
+          - S
+          - L
+          - D
+          - B
+          - U
+          - 9
+      isSamecountry:
+        description: Whether person always worked in 'work country'
+        type: boolean
+      countryOfOrigin:
+        description: >-
+          ISO  code for the country if the person hasn’t always lived in the
+          work country, the country the person identifies with (e.g. because the
+          person was born there)
+        type: string
+        minLength: 2
+        maxLength: 2
+      jobTitle:
+        description: The title of person job
+        type: string
+      tel:
+        description: Telephone number
+        type: string
+      fax:
+        description: Fax number
+        type: string
+      mobile:
+        description: Mobile number
+        type: string
+      extraInfo:
+        description: >-
+          Array of extra data for person, some CUGs might require some extra
+          data to register person in the system
+        type: array
+        items:
+          $ref: '#/definitions/ExtraPersonInfoModel'
+  ExtraPersonInfoModel:
+    title: Extra personal info item
+    description: Represents extra data for person
+    required:
+      - id
+      - value
+    properties:
+      id:
+        description: ID of extra variable
+        type: string
+      value:
+        description: Value of extra variable
+        type: string
+  iWAMPatternsScore:
+    title: Score for single iWAM pattern
+    description: Representation of the score for one pattern
+    properties:
+      pattern:
+        type: string
+        enum:
+          - OF1P
+          - OF1M
+          - OF2P
+          - OF2M
+          - OF3P
+          - OF3M
+          - OF4P
+          - OF4M
+          - OF5P
+          - OF5M
+          - OF6P
+          - OF6M
+          - OF7P
+          - OF7M
+          - OF8P
+          - OF8M
+          - So1
+          - So2
+          - So3
+          - WA1
+          - WA2
+          - WA3
+          - TP1
+          - TP2
+          - TP3
+          - Mo1
+          - Mo2
+          - Mo3
+          - N1
+          - N2
+          - N3
+          - N4
+          - CO1
+          - CO2
+          - CO3
+          - CO4
+          - CO5
+          - CO6
+          - CO7
+          - CO8
+          - IF1
+          - IF2
+          - IF3
+          - IF4
+          - IF5
+          - IF6
+          - IF7
+          - IF8
+      score:
+        type: integer
+  iWAMScoresAbsolute:
+    title: Absolute scores for iWAM
+    description: Representation of absolute person scores for iWAM
+    required:
+      - scores
+    properties:
+      scores:
+        description: Array of iWAM scores
+        type: array
+        items:
+          $ref: '#/definitions/iWAMPatternsScore'
+  iWAMScoresRelative:
+    title: Scores for iWAM relative to standard group
+    description: Representation of person scores for iWAM relative to standard group
+    required:
+      - scores
+      - standardGroup
+    properties:
+      standardGroup:
+        $ref: '#/definitions/standardGroup'
+      scores:
+        description: Array of iWAM scores
+        type: array
+        items:
+          $ref: '#/definitions/iWAMPatternsScore'
+  iWAMModelInfo:
+    title: iWAM model information
+    description: Information about iWAM model
+    required:
+      - id
+      - name
+    properties:
+      id:
+        description: Model ID
+        type: integer
+        format: int32
+      name:
+        description: Model name
+        type: string
+  iWAMModelScoreValue:
+    title: Scores values for iWAM model
+    description: Representation of person score values for iWAM model
+    properties:
+      total:
+        description: Total personal score for model
+        type: integer
+        format: int32
+      red:
+        description: How many times person appeared in the red zone
+        type: integer
+        format: int32
+      green:
+        description: How many times person appeared in the green zone
+        type: integer
+        format: int32
+      orange:
+        description: How many times person appeared in the orange zone
+        type: integer
+        format: int32
+      grey:
+        description: How many times person appeared in the grey zone
+        type: integer
+        format: int32
+  iWAMModelScore:
+    title: Scores for iWAM model
+    description: Representation person score for iWAM model
+    required:
+      - model
+      - scores
+    properties:
+      model:
+        $ref: '#/definitions/iWAMModelInfo'
+      scores:
+        $ref: '#/definitions/iWAMModelScoreValue'
+      maxModelScore:
+        description: Maximum possible score for model
+        type: integer
+        format: int32
+  iWAMAttitudeSorterReportPatternData:
+    title: iWAM Attitude sorter report pattern data
+    description: >-
+      Representation of one pattern information used in iWAM attitude sorter
+      report
+    required:
+      - label
+      - description
+    properties:
+      label:
+        description: Current pattern label
+        type: string
+      description:
+        description: Description for current pattern
+        type: string
+      jobAdvice:
+        description: Job advice related to current pattern
+        type: string
+  standardGroup:
+    title: Standard group information
+    description: Representation standard group data
+    required:
+      - id
+      - name
+    properties:
+      id:
+        description: ID of standard group
+        type: string
+      name:
+        description: Name of standard group
+        type: string
+      country:
+        description: Country of standard group
+        type: string
+  iWAMAttitudeSorterReport:
+    title: iWAM attitude sorter report
+    description: Representation of iWAM Attitude sorter report in JSON
+    required:
+      - settings
+      - person
+      - standardGroup
+      - content
+    properties:
+      settings:
+        description: Current report settings
+        type: object
+        properties:
+          standardGroupID:
+            description: ID of standard group
+            type: string
+          cugID:
+            description: ID of the CUG
+            type: string
+          language:
+            description: Current report language
+            type: string
+      person:
+        description: Personal info
+        type: object
+        properties:
+          name:
+            description: Full name of person
+            type: string
+          testDate:
+            description: Date when iWAM test was completed
+            type: string
+            format: dateTime
+          validity:
+            description: Number of questions where endings order was not changed
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 40
+      standardGroup:
+        $ref: '#/definitions/standardGroup'
+      content:
+        description: Report content
+        type: object
+        properties:
+          strengths:
+            description: Array of strings representing strengths for person
+            type: array
+            items:
+              $ref: '#/definitions/iWAMAttitudeSorterReportPatternData'
+          development:
+            description: Array of strings representing areas of development for person
+            type: array
+            items:
+              $ref: '#/definitions/iWAMAttitudeSorterReportPatternData'
+      extra_texts:
+        description: Additional report texts
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              description: ID of the string
+              type: string
+            text:
+              description: Extra string content
+              type: string
+  iWAMRankingReport:
+    title: iWAM ranking report
+    description: Representation of iWAM ranking report
+    required:
+      - model
+      - ranking
+      - summary
+      - model_statistics
+    properties:
+      model:
+        $ref: '#/definitions/iWAMModelInfo'
+      ranking:
+        description: personal info
+        type: array
+        items:
+          type: object
+          description: Ranking data for person
+          required:
+            - id
+            - firstName
+            - lastName
+            - scores
+          properties:
+            id:
+              type: integer
+              format: int32
+            firstName:
+              type: string
+            lastName:
+              type: string
+            scores:
+              $ref: '#/definitions/iWAMModelScoreValue'
+      summary:
+        description: Ranking summary represents scores for each pattern used in the model
+        type: array
+        items:
+          type: object
+          description: Ranking info for one iWAM pattern used in the model
+          required:
+            - code
+            - label
+            - green
+            - orange
+            - red
+            - grey
+            - weight
+            - significance
+          properties:
+            code:
+              type: string
+              description: iWAM pattern code
+              enum:
+                - OF1P
+                - OF1M
+                - OF2P
+                - OF2M
+                - OF3P
+                - OF3M
+                - OF4P
+                - OF4M
+                - OF5P
+                - OF5M
+                - OF6P
+                - OF6M
+                - OF7P
+                - OF7M
+                - OF8P
+                - OF8M
+                - So1
+                - So2
+                - So3
+                - WA1
+                - WA2
+                - WA3
+                - TP1
+                - TP2
+                - TP3
+                - Mo1
+                - Mo2
+                - Mo3
+                - N1
+                - N2
+                - N3
+                - N4
+                - CO1
+                - CO2
+                - CO3
+                - CO4
+                - CO5
+                - CO6
+                - CO7
+                - CO8
+                - IF1
+                - IF2
+                - IF3
+                - IF4
+                - IF5
+                - IF6
+                - IF7
+                - IF8
+            label:
+              description: iWAM pattern label
+              type: string
+            green:
+              description: >-
+                How many persons from ranking list are in green zone for current
+                parameter
+              type: integer
+              format: int32
+            orange:
+              description: >-
+                How many persons from ranking list are in orange zone for
+                current parameter
+              type: integer
+              format: int32
+            red:
+              description: >-
+                How many persons from ranking list are in red zone for current
+                parameter
+              type: integer
+              format: int32
+            grey:
+              description: >-
+                How many persons from ranking list are in green zone for current
+                parameter
+              type: integer
+              format: int32
+            weight:
+              description: >-
+                Indicates the weight given to the parameter in the scoring
+                formula (e.g. a weight of 3 means that the score is multiplied
+                by 3)
+              type: number
+              format: float
+            significance:
+              type: string
+              description: Indicates significance of current pattern
+              enum:
+                - STD
+                - BSIG
+                - SIG
+                - VIP
+      model_statistics:
+        description: Statistics for current model being used
+        type: object
+        properties:
+          parameters:
+            description: Array of parameters descriptions
+            type: array
+            items:
+              type: object
+              properties:
+                type:
+                  description: Parameter type related to significance
+                  type: string
+                  enum:
+                    - HALF
+                    - BASE
+                    - DOUBLE
+                    - TRIPLE
+                amount:
+                  description: How many parameters of given tyoe exist in the model
+                  type: integer
+                  format: int32
+                maxScore:
+                  description: Max score of all parameters of this type in the model
+                  type: integer
+                  format: int32
+          yesPleaseScore:
+            description: >-
+              If person scores more then this value, the person gets 'Yes
+              please' confirmation
+            type: number
+            format: float
+          noThanksScore:
+            description: >-
+              If person scores less then this value, the person gets 'No thanks'
+              rejection
+            type: number
+            format: float
+          maxModelScore:
+            description: Maximum score for this model
+            type: number
+            format: float
+  IwamQuestionTranslation:
+    title: Single iWAM question translation
+    description: Strings of iWAM question and endings for specified language
+    required:
+      - number
+      - language
+      - question
+      - endings
+    properties:
+      language:
+        type: string
+        description: Current language
+      number:
+        type: integer
+        format: int32
+        description: Position of current question in iWAM survey
+      question:
+        description: Question language text
+        type: string
+      endings:
+        description: >-
+          Array of endings for the question. Order is the same as it appears in
+          iWAM survey on jobEQ web site
+        type: array
+        items:
+          $ref: '#/definitions/IwamQuestionEnding'
+  IwamQuestionEnding:
+    title: iWAM question ending
+    description: One iWAM question ending with its initial position in iWAM survey
+    required:
+      - position
+      - text
+    properties:
+      position:
+        description: Position in endings list for current question
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 5
+      text:
+        description: Text of the ending
+        type: string
+  StorageInfo:
+    title: Storage object
+    description: Storage information
+    required:
+      - cugID
+    properties:
+      cugID:
+        type: string
+      storageroomID:
+        type: array
+        description: >-
+          Array of storagerooms linked to the CUG. Note that array might be
+          empty.
+        items:
+          type: string
+  ReportSettings:
+    title: Report settings
+    description: A set of settings with common parameters for various jobEQ reports
+    properties:
+      cugID:
+        description: >-
+          The ID of CUG to be used for charging and branding, if not provided
+          and report is generated for person, then the first commercial CUG with
+          person registration will be used
+        type: string
+        minLength: 6
+        maxLength: 6
+      standardGroupID:
+        description: >-
+          The ID of standard group used to retrieve relative scores, if not
+          provided standard group will be picked according to person work
+          country
+        type: string
+      reportLanguage:
+        description: Report language
+        type: string
+        default: en
+  ModelDefinition:
+    title: Definition of model
+    description: Model info and description
+    required:
+      - id
+      - name
+      - data_string
+      - data_object
+    properties:
+      id:
+        description: Model ID
+        type: string
+      name:
+        description: Model name
+        type: string
+      data_string:
+        description: Model definition as raw string
+        type: string
+      data_object:
+        description: Model definition as object
+        type: object
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+securityDefinitions:
+  jobeqAPIAuth:
+    type: oauth2
+    description: Valid acceess token should be provided with every API request
+    flow: application
+    tokenUrl: 'http://www.jobeq.net/oauth/access_token'
+security:
+  - jobeqAPIAuth: []
