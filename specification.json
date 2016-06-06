@@ -793,13 +793,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Representation of report content in JSON format",
+                        "description": "Representation of iWAM ranking report content in JSON format",
                         "schema": {
                             "$ref": "#/definitions/iWAMRankingReport"
                         }
                     },
                     "400": {
-                        "description": "Bad request: invalid list of people IDs, or invalid modelID, or requested model doesn't exist",
+                        "description": "Bad request: invalid person IDs, or invalid modelID, or requested model doesn't exist",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -985,7 +985,7 @@
             "properties": {
                 "iwamStatus": {
                     "type": "string",
-                    "description": "Current personal iWAM status, possible values are: 'n' - iWAM is not available for person, 't' - iWAM was completed by person and no new iWAM data can be submitted, '<integer>' - iWAM was completed at least once and new iWAM can be submitted (the value of integer shows how many iWAMs are stored for person already) ",
+                    "description": "Current personal iWAM status, possible values are: 'n' - iWAM is not available for person, 't' - iWAM was completed by person and no new iWAM data can be submitted, '<integer>' - iWAM was completed at least once and new iWAM can be submitted (the value of integer shows how many iWAMs are stored for person already)",
                     "enum": [
                         "n",
                         "t",
@@ -1437,39 +1437,54 @@
         },
         "iWAMRankingReport": {
             "title": "iWAM ranking report",
-            "description": "Representation of iWAM ranking report",
+            "description": "representation of iWAM ranking report",
             "required": [
                 "model",
                 "ranking",
                 "summary",
-                "model_statistics"
+                "statistics"
             ],
             "properties": {
                 "model": {
                     "$ref": "#/definitions/iWAMModelInfo"
                 },
                 "ranking": {
-                    "description": "personal info",
+                    "description": "ranking of people for provided model",
                     "type": "array",
                     "items": {
                         "type": "object",
-                        "description": "Ranking data for person",
+                        "description": "Ranking data for one person",
                         "required": [
                             "id",
                             "firstName",
                             "lastName",
-                            "scores"
+                            "scores",
+                            "percentage",
+                            "position"
                         ],
                         "properties": {
                             "id": {
                                 "type": "integer",
+                                "description": "person ID",
                                 "format": "int32"
                             },
                             "firstName": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "person first name"
                             },
                             "lastName": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "person last name"
+                            },
+                            "percentage": {
+                                "type": "integer",
+                                "description": "normalized percentage score for person",
+                                "format": "int32"
+                            },
+                            "position": {
+                                "type": "integer",
+                                "description": "position of person in current ranking, higher position means higher score for requested model",
+                                "format": "int32"
                             },
                             "scores": {
                                 "$ref": "#/definitions/iWAMModelScoreValue"
@@ -1478,18 +1493,17 @@
                     }
                 },
                 "summary": {
-                    "description": "Ranking summary represents scores for each pattern used in the model",
+                    "description": "ranking summary represents scores for each iWAM pattern used in the model",
                     "type": "array",
                     "items": {
                         "type": "object",
-                        "description": "Ranking info for one iWAM pattern used in the model",
+                        "description": "ranking info for one iWAM pattern used in the model",
                         "required": [
                             "code",
-                            "label",
-                            "green",
-                            "orange",
-                            "red",
-                            "grey",
+                            "r",
+                            "g",
+                            "o",
+                            "u",
                             "weight",
                             "significance"
                         ],
@@ -1548,95 +1562,124 @@
                                     "IF8"
                                 ]
                             },
-                            "label": {
-                                "description": "iWAM pattern label",
-                                "type": "string"
-                            },
-                            "green": {
-                                "description": "How many persons from ranking list are in green zone for current parameter",
+                            "r": {
+                                "description": "How many people from ranking list are in red zone for current parameter",
                                 "type": "integer",
                                 "format": "int32"
                             },
-                            "orange": {
-                                "description": "How many persons from ranking list are in orange zone for current parameter",
+                            "g": {
+                                "description": "How many people from ranking list are in green zone for current parameter",
                                 "type": "integer",
                                 "format": "int32"
                             },
-                            "red": {
-                                "description": "How many persons from ranking list are in red zone for current parameter",
+                            "o": {
+                                "description": "How many people from ranking list are in orange zone for current parameter",
                                 "type": "integer",
                                 "format": "int32"
                             },
-                            "grey": {
-                                "description": "How many persons from ranking list are in green zone for current parameter",
+                            "u": {
+                                "description": "How many people from ranking list are in grey (unknown) zone for current parameter",
                                 "type": "integer",
                                 "format": "int32"
                             },
                             "weight": {
-                                "description": "Indicates the weight given to the parameter in the scoring formula (e.g. a weight of 3 means that the score is multiplied by 3)",
+                                "description": "Indicates the weight of the iWAM pattern in the scoring formula (e.g. a weight of 3 means that the score is multiplied by 3)",
                                 "type": "number",
                                 "format": "float"
                             },
                             "significance": {
                                 "type": "string",
-                                "description": "Indicates significance of current pattern",
+                                "description": "Indicates significance of current pattern, false if no significance defined",
                                 "enum": [
                                     "STD",
                                     "BSIG",
                                     "SIG",
-                                    "VIP"
+                                    "VIP",
+                                    false
                                 ]
                             }
                         }
                     }
                 },
-                "model_statistics": {
-                    "description": "Statistics for current model being used",
+                "statistics": {
+                    "description": "statistic data for current report",
                     "type": "object",
                     "properties": {
-                        "parameters": {
-                            "description": "Array of parameters descriptions",
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "type": {
-                                        "description": "Parameter type related to significance",
-                                        "type": "string",
-                                        "enum": [
-                                            "HALF",
-                                            "BASE",
-                                            "DOUBLE",
-                                            "TRIPLE"
-                                        ]
-                                    },
-                                    "amount": {
-                                        "description": "How many parameters of given tyoe exist in the model",
-                                        "type": "integer",
-                                        "format": "int32"
-                                    },
-                                    "maxScore": {
-                                        "description": "Max score of all parameters of this type in the model",
+                        "people": {
+                            "description": "statistics about personal data in report",
+                            "type": "object",
+                            "properties": {
+                                "total": {
+                                    "description": "amount of people in the report",
+                                    "type": "integer",
+                                    "format": "int32"
+                                },
+                                "iwam_completed": {
+                                    "description": "how many people have iWAM completed",
+                                    "type": "integer",
+                                    "format": "int32"
+                                },
+                                "no_iwam": {
+                                    "description": "IDs of people who didn't complete iWAM yet, their data is not used in ranking",
+                                    "type": "array",
+                                    "items": {
                                         "type": "integer",
                                         "format": "int32"
                                     }
                                 }
                             }
                         },
-                        "yesPleaseScore": {
-                            "description": "If person scores more then this value, the person gets 'Yes please' confirmation",
-                            "type": "number",
-                            "format": "float"
+                        "model": {
+                            "description": "statistics about model used in report",
+                            "type": "object",
+                            "properties": {
+                                "max": {
+                                    "description": "maximum score for this model",
+                                    "type": "number",
+                                    "format": "float"
+                                },
+                                "yes": {
+                                    "description": "\"Yes please\" score for this model",
+                                    "type": "number",
+                                    "format": "float"
+                                },
+                                "no": {
+                                    "description": "\"No thanks\" score for this model",
+                                    "type": "number",
+                                    "format": "float"
+                                },
+                                "red_zones_treshold": {
+                                    "description": "Maximum amount of times person can appear in red to be able to obtain \"Yes_please score\"",
+                                    "type": "integer",
+                                    "format": "int32"
+                                }
+                            }
                         },
-                        "noThanksScore": {
-                            "description": "If person scores less then this value, the person gets 'No thanks' rejection",
-                            "type": "number",
-                            "format": "float"
-                        },
-                        "maxModelScore": {
-                            "description": "Maximum score for this model",
-                            "type": "number",
-                            "format": "float"
+                        "scores": {
+                            "description": "statistics about personal scorings in report",
+                            "type": "object",
+                            "properties": {
+                                "yes": {
+                                    "description": "how many people scored \\\"Yes please\\\"",
+                                    "type": "integer",
+                                    "format": "int32"
+                                },
+                                "average": {
+                                    "description": "how many people scored average, between Yes and No",
+                                    "type": "integer",
+                                    "format": "int32t"
+                                },
+                                "no": {
+                                    "description": "how many people scored \\\"No thanks\\\"",
+                                    "type": "integer",
+                                    "format": "int32"
+                                },
+                                "too_many_red_zones": {
+                                    "description": "How many people scored \"Yes please\", but appeared too many times in red zones",
+                                    "type": "integer",
+                                    "format": "int32"
+                                }
+                            }
                         }
                     }
                 }
