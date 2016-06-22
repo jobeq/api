@@ -206,11 +206,7 @@ paths:
       operationId: get_person_iwam_scores_relative
       parameters:
         - $ref: '#/parameters/personIDParam'
-        - name: stdgrpID
-          description: Standard group used to calculate personal iWAM scores
-          in: path
-          required: true
-          type: string
+        - $ref: '#/parameters/stdgrpIDParam'
       tags:
         - people
       responses:
@@ -724,7 +720,49 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+
+  '/standard_group/definition/{stdgrpID}':
+    get:
+      summary: Get definition of the standard group
+      description: |
+        Returns information about standard group
+      operationId: get_standard_group_definition
+      tags:
+        - standard group
+      parameters:
+        - $ref: '#/parameters/stdgrpIDParam'
+      responses:
+        '200':
+          description: Object representing standard group 
+          schema:
+            $ref: '#/definitions/StandardGroupDefinition'
+        '400':
+          description: 'Bad request: invalid stdgrpID, or requested standard group doesn''t exist.'
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: >-
+            Unauthorized: API user was not found or is not active, or invalid
+            access token.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: 'Forbidden: API user doesn''t have access to requested standard group.'
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'            
+
+
+
 parameters:
+
   personIDParam:
     name: personID
     in: path
@@ -732,6 +770,7 @@ parameters:
     required: true
     type: integer
     format: int32
+    
   modelIDParam:
     name: modelID
     in: path
@@ -739,7 +778,80 @@ parameters:
     required: true
     type: integer
     format: int32
+    
+  stdgrpIDParam:
+    name: stdgrpID
+    in: path
+    description: ID of standard group
+    required: true
+    type: string
+    
+    
+    
 definitions:
+
+  IwamPatternCode:
+    title: code of iWAM pattern
+    description: one of 48 iWAM pattern codes, or one of 8 combination pattern codes (BP1 - BP8)
+    type: string
+    enum:
+          - OF1P
+          - OF1M
+          - OF2P
+          - OF2M
+          - OF3P
+          - OF3M
+          - OF4P
+          - OF4M
+          - OF5P
+          - OF5M
+          - OF6P
+          - OF6M
+          - OF7P
+          - OF7M
+          - OF8P
+          - OF8M
+          - So1
+          - So2
+          - So3
+          - WA1
+          - WA2
+          - WA3
+          - TP1
+          - TP2
+          - TP3
+          - Mo1
+          - Mo2
+          - Mo3
+          - N1
+          - N2
+          - N3
+          - N4
+          - CO1
+          - CO2
+          - CO3
+          - CO4
+          - CO5
+          - CO6
+          - CO7
+          - CO8
+          - IF1
+          - IF2
+          - IF3
+          - IF4
+          - IF5
+          - IF6
+          - IF7
+          - IF8
+          - BP1
+          - BP2
+          - BP3
+          - BP4
+          - BP5
+          - BP6
+          - BP7
+          - BP8
+        
   NewPersonID:
     title: person ID
     description: ID of new registered person
@@ -748,6 +860,7 @@ definitions:
       personID:
         type: integer
         format: int32
+        
   IwamAnswerData:
     title: iWAM answer
     description: Data for ordering of one iWAM survey question
@@ -762,6 +875,7 @@ definitions:
         type: string
         minLength: 5
         maxLength: 5
+        
   IwamSurveyData:
     title: iWAM survey data
     description: iWAM survey data
@@ -793,12 +907,14 @@ definitions:
           questionnaire
         type: string
         format: date-time
+        
   PersonPIN:
     title: pin
     description: sha1 hash of person pin code
     properties:
       pinHash:
         type: string
+        
   PersonIwamStatus:
     title: Person iWAM status
     required:
@@ -816,6 +932,7 @@ definitions:
           - 'n'
           - t
           - 0
+          
   PersonRegistrationData:
     type: object
     title: person
@@ -918,6 +1035,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/ExtraPersonInfoModel'
+          
   ExtraPersonInfoModel:
     title: Extra personal info item
     description: Represents extra data for person
@@ -931,61 +1049,13 @@ definitions:
       value:
         description: Value of extra variable
         type: string
+        
   iWAMPatternsScore:
     title: Score for single iWAM pattern
     description: Representation of the score for one pattern
     properties:
       pattern:
-        type: string
-        enum:
-          - OF1P
-          - OF1M
-          - OF2P
-          - OF2M
-          - OF3P
-          - OF3M
-          - OF4P
-          - OF4M
-          - OF5P
-          - OF5M
-          - OF6P
-          - OF6M
-          - OF7P
-          - OF7M
-          - OF8P
-          - OF8M
-          - So1
-          - So2
-          - So3
-          - WA1
-          - WA2
-          - WA3
-          - TP1
-          - TP2
-          - TP3
-          - Mo1
-          - Mo2
-          - Mo3
-          - N1
-          - N2
-          - N3
-          - N4
-          - CO1
-          - CO2
-          - CO3
-          - CO4
-          - CO5
-          - CO6
-          - CO7
-          - CO8
-          - IF1
-          - IF2
-          - IF3
-          - IF4
-          - IF5
-          - IF6
-          - IF7
-          - IF8
+        $ref: '#/definitions/IwamPatternCode'
       score:
         type: integer
   iWAMScoresAbsolute:
@@ -1241,58 +1311,7 @@ definitions:
             - significance
           properties:
             code:
-              type: string
-              description: >- 
-                iWAM pattern code
-              enum:
-                - OF1P
-                - OF1M
-                - OF2P
-                - OF2M
-                - OF3P
-                - OF3M
-                - OF4P
-                - OF4M
-                - OF5P
-                - OF5M
-                - OF6P
-                - OF6M
-                - OF7P
-                - OF7M
-                - OF8P
-                - OF8M
-                - So1
-                - So2
-                - So3
-                - WA1
-                - WA2
-                - WA3
-                - TP1
-                - TP2
-                - TP3
-                - Mo1
-                - Mo2
-                - Mo3
-                - N1
-                - N2
-                - N3
-                - N4
-                - CO1
-                - CO2
-                - CO3
-                - CO4
-                - CO5
-                - CO6
-                - CO7
-                - CO8
-                - IF1
-                - IF2
-                - IF3
-                - IF4
-                - IF5
-                - IF6
-                - IF7
-                - IF8
+              $ref: '#/definitions/IwamPatternCode'
             r:
               description: >-
                 How many people from ranking list are in red zone for current
@@ -1437,6 +1456,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/IwamQuestionEnding'
+          
   IwamQuestionEnding:
     title: iWAM question ending
     description: One iWAM question ending with its initial position in iWAM survey
@@ -1453,6 +1473,7 @@ definitions:
       text:
         description: Text of the ending
         type: string
+        
   StorageInfo:
     title: Storage object
     description: Storage information
@@ -1468,6 +1489,7 @@ definitions:
           empty.
         items:
           type: string
+          
   ReportSettings:
     title: Report settings
     description: A set of settings with common parameters for various jobEQ reports
@@ -1490,6 +1512,7 @@ definitions:
         description: Report language
         type: string
         default: en
+        
   ModelDefinition:
     title: Definition of model
     description: Model info and description
@@ -1511,6 +1534,62 @@ definitions:
       data_object:
         description: Model definition as object
         type: object
+  
+  StandardGroupPatternValue:
+    title: Standard group value for single iWAM pattern
+    description: Representation of standard group parameters for single pattern
+    required:
+      - pattern
+      - low
+      - diff
+    properties:
+      pattern:
+        $ref: '#/definitions/IwamPatternCode'
+        
+      low:
+        description: low boundary (absolute value) of the pattern in standard group
+        type: number
+        format: float
+        minimum: 0
+        maximum: 1
+      diff:
+        description: difference value ((absolute value) of the pattern in standard group
+        type: number
+        format: float
+        minimum: 0
+        maximum: 1
+        
+  StandardGroupDefinition:
+    title: Definition of standard group
+    description: Standard group description and values
+    required:
+      - id
+      - name
+      - country
+      - size
+      - values
+    properties:
+      id:
+        description: Standard group ID
+        type: string
+      name:
+        description: Standard group name
+        type: string
+      country:
+        type: string
+        description: Standard group country ISO code
+        minLength: 2
+        maxLength: 2
+      size:
+        description: Amount of people used to build standard group
+        type: integer
+        format: int32
+      values:
+        description: standard group values for patter
+        type: array
+        items: 
+          $ref: '#/definitions/StandardGroupPatternValue'
+          
   Error:
     type: object
     properties:
