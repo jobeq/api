@@ -118,6 +118,65 @@
                 }
             }
         },
+        "/people/{personID}/profile": {
+            "patch": {
+                "summary": "Update personal profile",
+                "description": "Update personal profile",
+                "operationId": "person_patch_profile",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/personIDParam"
+                    },
+                    {
+                        "name": "profile",
+                        "in": "body",
+                        "description": "Set of properties which should be updated with their new values. Available properties are the same as in person registration API request. Object should contain at least one property to update. On example to update email address only, provide an object with \"email\" property containing new address.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PersonRegistrationData"
+                        }
+                    }
+                ],
+                "tags": [
+                    "people"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Person profile was succesfully updated"
+                    },
+                    "401": {
+                        "description": "Unauthorized: API user was not found or is not active, or invalid access token.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: API user doesn't have access to personal data or not enough permissions to process request",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "personID is invalid or person doesn't exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
         "/people/{personID}/pin": {
             "get": {
                 "summary": "Get person PIN code hash",
