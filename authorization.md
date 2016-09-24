@@ -1,6 +1,6 @@
 ## jobEQ API authorization
 
-Authorization is required to use [jobEQ API](http://www.jobeq.info/api/). Application should provide valid access token with every API request. Authorization is based on oAuth2 protocol, "client credentials" scenario is used. Note that in order to use jobEQ API application also needs to receive a secret key and ID from jobEQ, please mail jobEQ to register your app. 
+Authorization is required to use [jobEQ API](https://api.jobeq.com/api/). Application should provide valid access token with every API request. Authorization is based on oAuth2 protocol, "client credentials" scenario is used. Note that in order to use jobEQ API application also needs to receive a secret key and ID from jobEQ, please mail jobEQ to register your app.
 
 ### How to start using jobEQ API ?
 
@@ -12,7 +12,7 @@ Authorization is required to use [jobEQ API](http://www.jobeq.info/api/). Applic
 1. Request access token by sending GET request to jobEQ authorization service and providing __app secret__ and __application ID__ in request
 
        ```
-       curl -u app_id:app_secret http://www.jobeq.net/oauth/access_token.php -d 'grant_type=client_credentials'
+       curl -u app_id:app_secret https://api.jobeq.com/oauth/access_token.php -d 'grant_type=client_credentials'
        ```
 
 2. jobEQ will reply with json containing access token:
@@ -24,7 +24,7 @@ Authorization is required to use [jobEQ API](http://www.jobeq.info/api/). Applic
 3. Perform API requests with access token in header:
 
        ```
-       curl -H -v "Authorization: Bearer 4ea347ac369edbe59a0753a5910897f1ea96a798" http://jobeq.info/api_test/texts/surveys/iwam/EN
+       curl -H -v "Authorization: Bearer 4ea347ac369edbe59a0753a5910897f1ea96a798" https://api.jobeq.com/api/texts/surveys/iwam/EN
        ```
        
 4. jobEQ will process resource request and reply according to [API specification](../master/specification.json)
