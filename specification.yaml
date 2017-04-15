@@ -109,7 +109,7 @@ paths:
       patch:
         summary: Update personal profile
         description: >-
-          Modify some properties of personal profile.
+          Update personal profile
         operationId: person_patch_profile
         parameters:
           - $ref: '#/parameters/personIDParam'
